@@ -196,18 +196,18 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
 
     @Override
     public void run() {
-        if (Math.abs(anglePerSecond) < 20) {
+        if (Math.abs(anglePerSecond) < 12) {
             isFling = false;
             return;
         }
         isFling = true;
         if (wise) {
-            delayAngle += (Math.abs(anglePerSecond) / 15);
+            delayAngle += (Math.abs(anglePerSecond) / 12);
         } else {
-            delayAngle -= (Math.abs(anglePerSecond) / 15);
+            delayAngle -= (Math.abs(anglePerSecond) / 12);
         }
 
-        anglePerSecond /= 1.1f;
+        anglePerSecond /= 1.2f;
         postDelayed(this, 15);
         requestLayout();
     }
