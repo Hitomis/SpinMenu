@@ -24,7 +24,7 @@ public class SpinMenuLayout extends ViewGroup {
 
     private VelocityTracker vTracker;
 
-    private int startAngle, delayAngle;
+    private float startAngle, delayAngle;
 
     private float radius;
 
@@ -85,14 +85,6 @@ public class SpinMenuLayout extends ViewGroup {
     }
 
     @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_MOVE) {
-            return true;
-        }
-        return super.onInterceptTouchEvent(ev);
-    }
-
-    @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
 
         float curX = ev.getX();
@@ -116,7 +108,7 @@ public class SpinMenuLayout extends ViewGroup {
 
                 float start = getAngle(preX, preY);
                 float end = getAngle(curX, curY);
-                delayAngle += end - start;
+                delayAngle += start - end;
                 requestLayout();
 
                 preX = curX;
@@ -132,7 +124,7 @@ public class SpinMenuLayout extends ViewGroup {
     }
 
     private float getAngle(float xTouch, float yTouch) {
-        double x = Math.abs(xTouch - radius);
+        double x = Math.abs(getMeasuredWidth() - xTouch - radius);
         double y = Math.abs(getMeasuredHeight() - yTouch - radius);
         return (float) (Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI);
     }
