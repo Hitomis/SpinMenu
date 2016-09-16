@@ -106,24 +106,24 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
         }
     }
 
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        float curX = ev.getX();
-        switch (ev.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                preX = curX;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                // 当手指拖动值大于 TouchSlop 值时，认为应该进行滚动，拦截子控件的事件
-                float diffX = Math.abs(curX - preX);
-                preX = curX;
-                if (diffX > touchSlop) {
-                    return true;
-                }
-                break;
-        }
-        return super.onInterceptTouchEvent(ev);
-    }
+//    @Override
+//    public boolean onInterceptTouchEvent(MotionEvent ev) {
+//        float curX = ev.getX();
+//        switch (ev.getAction()) {
+//            case MotionEvent.ACTION_DOWN:
+//                preX = curX;
+//                break;
+//            case MotionEvent.ACTION_MOVE:
+//                // 当手指拖动值大于 TouchSlop 值时，认为应该进行滚动，拦截子控件的事件
+//                float diffX = Math.abs(curX - preX);
+//                preX = curX;
+//                if (diffX > touchSlop) {
+//                    return true;
+//                }
+//                break;
+//        }
+//        return super.onInterceptTouchEvent(ev);
+//    }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -147,7 +147,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                 break;
             case MotionEvent.ACTION_MOVE:
                 float diffX = curX - preX;
-                if (Math.abs(diffX) < touchSlop) break;
+//                if (Math.abs(diffX) < touchSlop) break;
                 float start = getAngle(preX, preY);
                 float end = getAngle(curX, curY);
 
