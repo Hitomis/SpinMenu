@@ -7,6 +7,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.widget.Scroller;
 
 /**
  * Created by hitomi on 2016/9/13.
@@ -21,7 +22,12 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
     /**
      * View 之间间隔的角度
      */
-    private static final int ANGEL_SPACE = 45;
+    private static final int ANGLE_SPACE = 45;
+
+    /**
+     * View 旋转时最小转动角度的速度
+     */
+    private static final int MIN_PER_ANGLE = ANGLE_SPACE * 2;
 
     /**
      * 点击与触摸的切换阀值
@@ -36,17 +42,13 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
 
     private long preTimes;
 
-    /**
-     * 是否顺时针
-     */
-    private boolean wise;
-
-    /**
-     * 是否正在自动滚动
-     */
-    private boolean isFling;
-
     private float anglePerSecond;
+
+    private boolean isCyclic;
+
+    private Scroller scroller;
+
+    private int minFlingAngle, maxFlingAngle;
 
     public SpinMenuLayout(Context context) {
         this(context, null);
@@ -64,6 +66,14 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
             touchSlop = conf.getScaledTouchSlop();
         }
 
+        scroller = new Scroller(context);
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        isCyclic = getChildCount() == 360 / MIN_PER_ANGLE;
+        computeFlingLimitAngle();
     }
 
     @Override
@@ -102,28 +112,9 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                     left + childWidth / 2, top + childHeight / 2);
 
             child.setRotation(startAngle);
-            startAngle += ANGEL_SPACE;
+            startAngle += ANGLE_SPACE;
         }
     }
-
-//    @Override
-//    public boolean onInterceptTouchEvent(MotionEvent ev) {
-//        float curX = ev.getX();
-//        switch (ev.getAction()) {
-//            case MotionEvent.ACTION_DOWN:
-//                preX = curX;
-//                break;
-//            case MotionEvent.ACTION_MOVE:
-//                // 当手指拖动值大于 TouchSlop 值时，认为应该进行滚动，拦截子控件的事件
-//                float diffX = Math.abs(curX - preX);
-//                preX = curX;
-//                if (diffX > touchSlop) {
-//                    return true;
-//                }
-//                break;
-//        }
-//        return super.onInterceptTouchEvent(ev);
-//    }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -138,25 +129,19 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                 preTimes = System.currentTimeMillis();
                 perAngle = 0;
 
-                if (isFling) {
-                    // 移除快速滚动的回调
-                    removeCallbacks(this);
-                    isFling = false;
-                    return true;
+                if (!scroller.isFinished()) {
+                    scroller.abortAnimation();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
                 float diffX = curX - preX;
-//                if (Math.abs(diffX) < touchSlop) break;
                 float start = getAngle(preX, preY);
                 float end = getAngle(curX, curY);
 
                 if (diffX > 0) {
-                    wise = true;
                     delayAngle += Math.abs(start - end);
                     perAngle += Math.abs(start - end);
                 } else {
-                    wise = false;
                     delayAngle -= Math.abs(end - start);
                     perAngle -= Math.abs(end - start);
                 }
@@ -168,17 +153,43 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                 break;
             case MotionEvent.ACTION_UP:
                 anglePerSecond = perAngle * 1000 / (System.currentTimeMillis() - preTimes);
-                if (Math.abs(anglePerSecond) > 100 && !isFling) {
-                    // post一个任务，去自动滚动
-                    post(this);
-                    return true;
+                int startAngle = (int) delayAngle;
+                if (Math.abs(anglePerSecond) > MIN_PER_ANGLE) {
+                    scroller.fling(startAngle, 0, (int)anglePerSecond, 0, minFlingAngle, maxFlingAngle, 0, 0);
+                    scroller.setFinalX(scroller.getFinalX() + computeDistanceToEndAngle(scroller.getFinalX() % ANGLE_SPACE));
+                } else {
+                    scroller.startScroll(startAngle, 0, computeDistanceToEndAngle(startAngle % ANGLE_SPACE), 0, 300);
                 }
-                if (Math.abs(perAngle) > 3) {
-                    return true;
+                // 校正角度
+                if (!isCyclic) {
+                    if (scroller.getFinalY() > maxFlingAngle) {
+                        scroller.setFinalY(maxFlingAngle);
+                    } else if (scroller.getFinalY() < minFlingAngle) {
+                        scroller.setFinalY(minFlingAngle);
+                    }
                 }
+                // post一个任务，自动滚动
+                post(this);
                 break;
         }
         return super.dispatchTouchEvent(ev);
+    }
+
+    private void computeFlingLimitAngle() {
+        // 因为中心点在底边中点（坐标系相反），故这里计算的min和max与实际相反
+        minFlingAngle = isCyclic ? Integer.MIN_VALUE : -ANGLE_SPACE * (getChildCount() - 1);
+        maxFlingAngle = isCyclic ? Integer.MAX_VALUE : 0;
+    }
+
+    private int computeDistanceToEndAngle(int remainder) {
+        if (Math.abs(remainder) > ANGLE_SPACE / 2) {
+            if (perAngle < 0)
+                return -ANGLE_SPACE - remainder;
+            else
+                return -remainder;
+        } else {
+            return -remainder;
+        }
     }
 
     @Override
@@ -196,19 +207,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
 
     @Override
     public void run() {
-        if (Math.abs(anglePerSecond) < 12) {
-            isFling = false;
-            return;
+        if (scroller.computeScrollOffset()) {
+            delayAngle = scroller.getCurrX();
+            postDelayed(this, 16);
+            requestLayout();
         }
-        isFling = true;
-        if (wise) {
-            delayAngle += (Math.abs(anglePerSecond) / 12);
-        } else {
-            delayAngle -= (Math.abs(anglePerSecond) / 12);
-        }
-
-        anglePerSecond /= 1.2f;
-        postDelayed(this, 15);
-        requestLayout();
     }
 }
