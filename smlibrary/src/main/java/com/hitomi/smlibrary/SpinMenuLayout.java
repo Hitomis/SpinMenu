@@ -10,7 +10,11 @@ import android.view.ViewGroup;
 import android.widget.Scroller;
 
 /**
- * Created by hitomi on 2016/9/13.
+ * Created by hitomi on 2016/9/13.<br/>
+ *
+ * github : https://github.com/Hitomis<br/>
+ *
+ * email : 196425254@qq.com
  */
 public class SpinMenuLayout extends ViewGroup implements Runnable{
 
