@@ -27,7 +27,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
     /**
      * View 旋转时最小转动角度的速度
      */
-    private static final int MIN_PER_ANGLE = ANGLE_SPACE * 2;
+    private static final int MIN_PER_ANGLE = ANGLE_SPACE;
 
     /**
      * 点击与触摸的切换阀值
@@ -154,14 +154,14 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
             case MotionEvent.ACTION_UP:
                 anglePerSecond = perAngle * 1000 / (System.currentTimeMillis() - preTimes);
                 int startAngle = (int) delayAngle;
-                if (Math.abs(anglePerSecond) > MIN_PER_ANGLE) {
+                if (Math.abs(anglePerSecond) > MIN_PER_ANGLE && startAngle >= minFlingAngle && startAngle <= maxFlingAngle) {
                     scroller.fling(startAngle, 0, (int)anglePerSecond, 0, minFlingAngle, maxFlingAngle, 0, 0);
                     scroller.setFinalX(scroller.getFinalX() + computeDistanceToEndAngle(scroller.getFinalX() % ANGLE_SPACE));
                 } else {
                     scroller.startScroll(startAngle, 0, computeDistanceToEndAngle(startAngle % ANGLE_SPACE), 0, 300);
                 }
-                // 校正角度
-                if (!isCyclic) {
+
+                if (!isCyclic) { // 当不是循环转动时，需要校正角度
                     if (scroller.getFinalX() >= maxFlingAngle) {
                         scroller.setFinalX(maxFlingAngle);
                     } else if (scroller.getFinalX() <= minFlingAngle) {
@@ -186,7 +186,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
             if (perAngle < 0)
                 return -ANGLE_SPACE - remainder;
             else
-                return -remainder;
+                return ANGLE_SPACE - remainder;
         } else {
             return -remainder;
         }
