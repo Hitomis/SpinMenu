@@ -162,10 +162,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                 }
                 // 校正角度
                 if (!isCyclic) {
-                    if (scroller.getFinalY() > maxFlingAngle) {
-                        scroller.setFinalY(maxFlingAngle);
-                    } else if (scroller.getFinalY() < minFlingAngle) {
-                        scroller.setFinalY(minFlingAngle);
+                    if (scroller.getFinalX() >= maxFlingAngle) {
+                        scroller.setFinalX(maxFlingAngle);
+                    } else if (scroller.getFinalX() <= minFlingAngle) {
+                        scroller.setFinalX(minFlingAngle);
                     }
                 }
                 // post一个任务，自动滚动
