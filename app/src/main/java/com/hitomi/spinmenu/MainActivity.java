@@ -42,5 +42,13 @@ public class MainActivity extends AppCompatActivity {
         };
         spinMenu.setFragmentAdapter(fragmentPagerAdapter);
 
+        List<String> hintStrList = new ArrayList<>();
+        hintStrList.add("热门信息");
+        hintStrList.add("实时新闻");
+        hintStrList.add("我的论坛");
+        hintStrList.add("走走看看");
+        hintStrList.add("我的信息");
+        hintStrList.add("系统设置");
+        spinMenu.setHintTextList(hintStrList);
     }
 }

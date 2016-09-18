@@ -1,6 +1,7 @@
 package com.hitomi.smlibrary;
 
 import android.content.Context;
+import android.support.annotation.IdRes;
 import android.support.v4.view.PagerAdapter;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -30,6 +31,8 @@ public class SpinMenu extends FrameLayout {
 
     private List<SMItemLayout> smItemLayoutList;
 
+    private List<String> hintStrList;
+
     private boolean init;
 
     private float scaleRatio = SCALE_RATIO;
@@ -54,7 +57,9 @@ public class SpinMenu extends FrameLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
 
+        @IdRes int smLayoutId = 0x6F060505;
         spinMenuLayout = new SpinMenuLayout(getContext());
+        spinMenuLayout.setId(smLayoutId);
         ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
         spinMenuLayout.setLayoutParams(layoutParams);
         addView(spinMenuLayout);
@@ -65,14 +70,40 @@ public class SpinMenu extends FrameLayout {
         super.onLayout(changed, left, top, right, bottom);
 
         if (init) {
+            // 根据 scaleRatio 去调整菜单中 Fragment 视图的整体大小
             int pagerWidth = (int) (getMeasuredWidth() * scaleRatio);
             int pagerHeight = (int) (getMeasuredHeight() * scaleRatio);
 
             LinearLayout.LayoutParams pagerLinLayParams = new LinearLayout.LayoutParams(pagerWidth, pagerHeight);
             FrameLayout pagerLayout;
+            SMItemLayout smItemLayout;
+            TextView tvHint;
             for (int i = 0; i < smItemLayoutList.size(); i++) {
-                pagerLayout = (FrameLayout) smItemLayoutList.get(i).getChildAt(0);
-                pagerLayout.setLayoutParams(pagerLinLayParams);
+                smItemLayout = smItemLayoutList.get(i);
+                pagerLayout = (FrameLayout) smItemLayout.getChildAt(0);
+                if (i == 0) { // 初始菜单的时候，默认显示第一个 Fragment
+                    // 先移除第一个 Fragment 的布局
+                    smItemLayout.removeView(pagerLayout);
+
+                    // 创建一个用来占位的 FrameLayout
+                    FrameLayout holderLayout = new FrameLayout(getContext());
+                    holderLayout.setLayoutParams(pagerLinLayParams);
+
+                    // 将占位的 FrameLayout 添加到布局中的第一个位置（第二个位子是 Hint）
+                    smItemLayout.addView(holderLayout, 0);
+
+                    // 添加 第一个包含 Fragment 的布局到 SpinMenu 中
+                    FrameLayout.LayoutParams pagerFrameParams = new FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT);
+                    pagerLayout.setLayoutParams(pagerFrameParams);
+                    addView(pagerLayout);
+                } else {
+                    pagerLayout.setLayoutParams(pagerLinLayParams); // 重新调整大小
+
+                    if (hintStrList != null && !hintStrList.isEmpty() && i < hintStrList.size()) { // 显示标题
+                        tvHint = (TextView) smItemLayout.getChildAt(1);
+                        tvHint.setText(hintStrList.get(i));
+                    }
+                }
             }
             init = false;
         }
@@ -95,6 +126,7 @@ public class SpinMenu extends FrameLayout {
         LinearLayout.LayoutParams hintLinLayParams = new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
         hintLinLayParams.topMargin = 15;
         hintLinLayParams.gravity = Gravity.CENTER;
+        pagerAdapter.startUpdate(spinMenuLayout);
         for (int i = 0; i < pagerCount; i++) {
             // 创建菜单父容器布局
             SMItemLayout smItemLayout = new SMItemLayout(getContext());
@@ -107,11 +139,10 @@ public class SpinMenu extends FrameLayout {
             framePager.setLayoutParams(pagerLinLayParams);
             Object object = pagerAdapter.instantiateItem(framePager, i);
 
-            // 创建菜单标题 View
+            // 创建菜单标题 TextView
             TextView tvHint = new TextView(getContext());
             tvHint.setId(pagerCount * 2 + i + 1);
             tvHint.setLayoutParams(hintLinLayParams);
-            tvHint.setText("测试");
 
             smItemLayout.addView(framePager);
             smItemLayout.addView(tvHint);
@@ -121,5 +152,13 @@ public class SpinMenu extends FrameLayout {
             smItemLayoutList.add(smItemLayout);
         }
         pagerAdapter.finishUpdate(spinMenuLayout);
+    }
+
+    public void setMenuItemScaleValue(float scaleValue) {
+        scaleRatio = scaleValue;
+    }
+
+    public void setHintTextList(List<String> hintTextList) {
+        hintStrList = hintTextList;
     }
 }
