@@ -15,11 +15,6 @@ import android.widget.Scroller;
 public class SpinMenuLayout extends ViewGroup implements Runnable {
 
     /**
-     * 计算半径的比例系数
-     */
-    private static final float RADIUS_SAPCE_RATIO = 1.2f;
-
-    /**
      * View 之间间隔的角度
      */
     private static final int ANGLE_SPACE = 45;
@@ -70,13 +65,6 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
     }
 
     @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-        isCyclic = getChildCount() == 360 / MIN_PER_ANGLE;
-        computeFlingLimitAngle();
-    }
-
-    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -91,6 +79,9 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
         final int childCount = getChildCount();
         if (childCount <= 0) return;
 
+        isCyclic = getChildCount() == 360 / MIN_PER_ANGLE;
+        computeFlingLimitAngle();
+
         delayAngle %= 360;
         float startAngle = delayAngle;
 
@@ -98,7 +89,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
         int childWidth, childHeight;
         int centerX = getMeasuredWidth() / 2;
         int centerY = getMeasuredHeight();
-        radius = centerX * RADIUS_SAPCE_RATIO + getChildAt(0).getMeasuredHeight() / 2;
+        radius = centerX + getChildAt(0).getMeasuredHeight() / 2;
 
         for (int i = 0; i < childCount; i++) {
             child = getChildAt(i);
