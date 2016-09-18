@@ -12,7 +12,7 @@ import android.widget.Scroller;
 /**
  * Created by hitomi on 2016/9/13.
  */
-public class SpinMenuLayout extends ViewGroup implements Runnable{
+public class SpinMenuLayout extends ViewGroup implements Runnable {
 
     /**
      * 计算半径的比例系数
@@ -109,11 +109,16 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
             top = (int) (centerY - Math.cos(Math.toRadians(startAngle)) * radius);
 
             child.layout(left - childWidth / 2, top - childHeight / 2,
-                    left + childWidth / 2, top + childHeight / 2);
+                        left + childWidth / 2, top + childHeight / 2);
 
             child.setRotation(startAngle);
             startAngle += ANGLE_SPACE;
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return true;
     }
 
     @Override
@@ -135,8 +140,8 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                 break;
             case MotionEvent.ACTION_MOVE:
                 float diffX = curX - preX;
-                float start = getAngle(preX, preY);
-                float end = getAngle(curX, curY);
+                float start = computeAngle(preX, preY);
+                float end = computeAngle(curX, curY);
 
                 if (diffX > 0) {
                     delayAngle += Math.abs(start - end);
@@ -152,10 +157,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                 preY = curY;
                 break;
             case MotionEvent.ACTION_UP:
-                anglePerSecond = perAngle * 1000 / (System.currentTimeMillis() - preTimes);
+                anglePerSecond = perAngle * 1000 / (System.currentTimeMillis() - preTimes) * 2;
                 int startAngle = (int) delayAngle;
                 if (Math.abs(anglePerSecond) > MIN_PER_ANGLE && startAngle >= minFlingAngle && startAngle <= maxFlingAngle) {
-                    scroller.fling(startAngle, 0, (int)anglePerSecond, 0, minFlingAngle, maxFlingAngle, 0, 0);
+                    scroller.fling(startAngle, 0, (int) anglePerSecond, 0, minFlingAngle, maxFlingAngle, 0, 0);
                     scroller.setFinalX(scroller.getFinalX() + computeDistanceToEndAngle(scroller.getFinalX() % ANGLE_SPACE));
                 } else {
                     scroller.startScroll(startAngle, 0, computeDistanceToEndAngle(startAngle % ANGLE_SPACE), 0, 300);
@@ -181,6 +186,13 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
         maxFlingAngle = isCyclic ? Integer.MAX_VALUE : 0;
     }
 
+    private float computeAngle(float xTouch, float yTouch) {
+        // 圆心点在底边的中点上，根据圆心点转化为对应坐标x, y
+        float x = Math.abs(xTouch - getMeasuredWidth() / 2);
+        float y = Math.abs(getMeasuredHeight() - yTouch);
+        return (float) (Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI);
+    }
+
     private int computeDistanceToEndAngle(int remainder) {
         if (Math.abs(remainder) > ANGLE_SPACE / 2) {
             if (perAngle < 0)
@@ -191,19 +203,6 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
             return -remainder;
         }
     }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return true;
-    }
-
-    private float getAngle(float xTouch, float yTouch) {
-        // 圆心点在底边的中点上，根据圆心点转化为对应坐标x, y
-        float x = Math.abs(xTouch - getMeasuredWidth() / 2);
-        float y = Math.abs(getMeasuredHeight() - yTouch);
-        return (float) (Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI);
-    }
-
 
     @Override
     public void run() {
