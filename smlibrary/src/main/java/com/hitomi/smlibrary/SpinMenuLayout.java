@@ -1,11 +1,9 @@
 package com.hitomi.smlibrary;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.Scroller;
 
@@ -16,12 +14,7 @@ import android.widget.Scroller;
  *
  * email : 196425254@qq.com
  */
-public class SpinMenuLayout extends ViewGroup implements Runnable{
-
-    /**
-     * 计算半径的比例系数
-     */
-    private static final float RADIUS_SAPCE_RATIO = 1.2f;
+public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickListener{
 
     /**
      * View 之间间隔的角度
@@ -32,11 +25,6 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
      * View 旋转时最小转动角度的速度
      */
     private static final int MIN_PER_ANGLE = ANGLE_SPACE;
-
-    /**
-     * 点击与触摸的切换阀值
-     */
-    private int touchSlop = 8;
 
     private float delayAngle, perAngle;
 
@@ -54,6 +42,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
 
     private int minFlingAngle, maxFlingAngle;
 
+    private OnSpinSelectedListener onSpinSelectedListener;
+
+    private OnMenuSelectedListener onMenuSelectedListener;
+
     public SpinMenuLayout(Context context) {
         this(context, null);
     }
@@ -64,20 +56,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
 
     public SpinMenuLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.DONUT) {
-            ViewConfiguration conf = ViewConfiguration.get(getContext());
-            touchSlop = conf.getScaledTouchSlop();
-        }
-
         scroller = new Scroller(context);
-    }
-
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-        isCyclic = getChildCount() == 360 / MIN_PER_ANGLE;
-        computeFlingLimitAngle();
     }
 
     @Override
@@ -95,6 +74,9 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
         final int childCount = getChildCount();
         if (childCount <= 0) return;
 
+        isCyclic = getChildCount() == 360 / MIN_PER_ANGLE;
+        computeFlingLimitAngle();
+
         delayAngle %= 360;
         float startAngle = delayAngle;
 
@@ -102,7 +84,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
         int childWidth, childHeight;
         int centerX = getMeasuredWidth() / 2;
         int centerY = getMeasuredHeight();
-        radius = centerX * RADIUS_SAPCE_RATIO + getChildAt(0).getMeasuredHeight() / 2;
+        radius = centerX + getChildAt(0).getMeasuredHeight() / 2;
 
         for (int i = 0; i < childCount; i++) {
             child = getChildAt(i);
@@ -113,11 +95,17 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
             top = (int) (centerY - Math.cos(Math.toRadians(startAngle)) * radius);
 
             child.layout(left - childWidth / 2, top - childHeight / 2,
-                    left + childWidth / 2, top + childHeight / 2);
+                        left + childWidth / 2, top + childHeight / 2);
 
+            child.setOnClickListener(this);
             child.setRotation(startAngle);
             startAngle += ANGLE_SPACE;
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return true;
     }
 
     @Override
@@ -139,8 +127,8 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                 break;
             case MotionEvent.ACTION_MOVE:
                 float diffX = curX - preX;
-                float start = getAngle(preX, preY);
-                float end = getAngle(curX, curY);
+                float start = computeAngle(preX, preY);
+                float end = computeAngle(curX, curY);
 
                 if (diffX > 0) {
                     delayAngle += Math.abs(start - end);
@@ -156,10 +144,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
                 preY = curY;
                 break;
             case MotionEvent.ACTION_UP:
-                anglePerSecond = perAngle * 1000 / (System.currentTimeMillis() - preTimes);
+                anglePerSecond = perAngle * 1000 / (System.currentTimeMillis() - preTimes) * 2;
                 int startAngle = (int) delayAngle;
                 if (Math.abs(anglePerSecond) > MIN_PER_ANGLE && startAngle >= minFlingAngle && startAngle <= maxFlingAngle) {
-                    scroller.fling(startAngle, 0, (int)anglePerSecond, 0, minFlingAngle, maxFlingAngle, 0, 0);
+                    scroller.fling(startAngle, 0, (int) anglePerSecond, 0, minFlingAngle, maxFlingAngle, 0, 0);
                     scroller.setFinalX(scroller.getFinalX() + computeDistanceToEndAngle(scroller.getFinalX() % ANGLE_SPACE));
                 } else {
                     scroller.startScroll(startAngle, 0, computeDistanceToEndAngle(startAngle % ANGLE_SPACE), 0, 300);
@@ -185,29 +173,23 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
         maxFlingAngle = isCyclic ? Integer.MAX_VALUE : 0;
     }
 
-    private int computeDistanceToEndAngle(int remainder) {
-        if (Math.abs(remainder) > ANGLE_SPACE / 2) {
-            if (perAngle < 0)
-                return -ANGLE_SPACE - remainder;
-            else
-                return ANGLE_SPACE - remainder;
-        } else {
-            return -remainder;
-        }
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return true;
-    }
-
-    private float getAngle(float xTouch, float yTouch) {
+    private float computeAngle(float xTouch, float yTouch) {
         // 圆心点在底边的中点上，根据圆心点转化为对应坐标x, y
         float x = Math.abs(xTouch - getMeasuredWidth() / 2);
         float y = Math.abs(getMeasuredHeight() - yTouch);
         return (float) (Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI);
     }
 
+    private int computeDistanceToEndAngle(int remainder) {
+        if (Math.abs(remainder) > ANGLE_SPACE / 2) {
+            if (perAngle < 0)
+                return -ANGLE_SPACE - remainder;
+            else
+                return Math.abs(remainder) - ANGLE_SPACE;
+        } else {
+            return -remainder;
+        }
+    }
 
     @Override
     public void run() {
@@ -216,5 +198,51 @@ public class SpinMenuLayout extends ViewGroup implements Runnable{
             postDelayed(this, 16);
             requestLayout();
         }
+        if (scroller.isFinished()) {
+            int position = Math.abs(scroller.getCurrX() / ANGLE_SPACE);
+            if (onSpinSelectedListener != null) {
+                onSpinSelectedListener.onSpinSelectedListener(position);
+            }
+        }
+    }
+
+    @Override
+    public void onClick(View view) {
+        int index = indexOfChild(view);
+        int selPos = getSelectedPosition();
+        if (index != selPos) {
+            // 当前点击的是左右两边的一个 Item，则把点击的 Item 滚动到选中[正中间]位置
+            scroller.startScroll(Math.round(delayAngle), 0, (selPos - index) * ANGLE_SPACE, 0, 300);
+            post(this);
+        } else {
+            if (view instanceof SMItemLayout && onMenuSelectedListener != null)
+                onMenuSelectedListener.onMenuSelectedListener((SMItemLayout) view);
+        }
+    }
+
+    public int getSelectedPosition() {
+        return Math.abs(scroller.getFinalX() / ANGLE_SPACE);
+    }
+
+    /**
+     * 获取圆形转动菜单的真正半径<br/>
+     * 半径是依据 child 的高度加上 SpinMenuLayout 的宽度的一半<br/>
+     * 所以当没有 child 的时候，半径取值为 -1
+     * @return
+     */
+    public int getRealRadius() {
+        if (getChildCount() > 0) {
+            return getMeasuredWidth() / 2 + getChildAt(0).getHeight();
+        } else {
+            return -1;
+        }
+    }
+
+    public void setOnSpinSelectedListener(OnSpinSelectedListener listener) {
+        onSpinSelectedListener = listener;
+    }
+
+    public void setOnMenuSelectedListener(OnMenuSelectedListener listener) {
+        onMenuSelectedListener = listener;
     }
 }
