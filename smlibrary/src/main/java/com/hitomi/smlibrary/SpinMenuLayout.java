@@ -220,6 +220,20 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         return Math.abs(scroller.getFinalX() / ANGLE_SPACE);
     }
 
+    /**
+     * 获取圆形转动菜单的真正半径<br/>
+     * 半径是依据 child 的高度加上 SpinMenuLayout 的宽度的一半<br/>
+     * 所以当没有 child 的时候，半径取值为 -1
+     * @return
+     */
+    public int getRealRadius() {
+        if (getChildCount() > 0) {
+            return getMeasuredWidth() / 2 + getChildAt(0).getHeight();
+        } else {
+            return -1;
+        }
+    }
+
     public void setOnSpinSelectedListener(OnSpinSelectedListener listener) {
         onSpinSelectedListener = listener;
     }

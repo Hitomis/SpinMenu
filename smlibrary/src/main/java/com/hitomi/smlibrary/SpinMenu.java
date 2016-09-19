@@ -76,6 +76,7 @@ public class SpinMenu extends FrameLayout {
         super(context, attrs, defStyleAttr);
 
         init = true;
+        isOpen = false;
         pagerObjects = new ArrayList();
         smItemLayoutList = new ArrayList<>();
     }
@@ -197,10 +198,10 @@ public class SpinMenu extends FrameLayout {
     }
 
     public void openMenu() {
-        if (!isOpen) {
+//        if (!isOpen) {
             spinMenuAnimator.openMenuAnimator();
             isOpen = !isOpen;
-        }
+//        }
     }
 
     public void closeMenu(SMItemLayout chooseItemLayout) {
