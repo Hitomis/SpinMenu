@@ -55,7 +55,7 @@ public class SpinMenu extends FrameLayout {
         }
     };
 
-    private com.hitomi.smlibrary.onMenuSelectedListener onMenuSelectedListener = new onMenuSelectedListener() {
+    private OnMenuSelectedListener onMenuSelectedListener = new OnMenuSelectedListener() {
         @Override
         public void onMenuSelectedListener(SMItemLayout smItemLayout) {
             if (isOpen) {
