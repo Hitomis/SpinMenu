@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
 
 import com.hitomi.smlibrary.SpinMenu;
 
@@ -50,5 +51,11 @@ public class MainActivity extends AppCompatActivity {
         hintStrList.add("我的信息");
         hintStrList.add("系统设置");
         spinMenu.setHintTextList(hintStrList);
+    }
+
+    @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        spinMenu.openMenu();
+        return super.onMenuOpened(featureId, menu);
     }
 }

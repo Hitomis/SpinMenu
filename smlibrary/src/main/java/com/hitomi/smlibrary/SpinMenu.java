@@ -21,9 +21,15 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
  */
 public class SpinMenu extends FrameLayout {
 
+    static final String TAG_ITEM_PAGER = "tag_item_pager";
+
+    static final String TAG_ITEM_HINT = "tag_item_hint";
+
     static final float SCALE_RATIO = .36f;
 
     private SpinMenuLayout spinMenuLayout;
+
+    private SpinMenuAnimator spinMenuAnimator;
 
     private PagerAdapter pagerAdapter;
 
@@ -35,7 +41,17 @@ public class SpinMenu extends FrameLayout {
 
     private boolean init;
 
+    private boolean isOpen;
+
     private float scaleRatio = SCALE_RATIO;
+
+    private OnSpinSelectedListener onSpinSelectedListener = new OnSpinSelectedListener() {
+        @Override
+        public void onSpinSelectedListener(int position) {
+//            Toast.makeText(getContext(), "" + position, Toast.LENGTH_SHORT).show();
+
+        }
+    };
 
     public SpinMenu(Context context) {
         this(context, null);
@@ -57,12 +73,15 @@ public class SpinMenu extends FrameLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
 
-        @IdRes int smLayoutId = 0x6F060505;
+        @IdRes final int smLayoutId = 0x6F060505;
+        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
         spinMenuLayout = new SpinMenuLayout(getContext());
         spinMenuLayout.setId(smLayoutId);
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT);
         spinMenuLayout.setLayoutParams(layoutParams);
+        spinMenuLayout.setOnSpinSelectedListener(onSpinSelectedListener);
         addView(spinMenuLayout);
+
+        spinMenuAnimator = new SpinMenuAnimator(this, spinMenuLayout);
     }
 
     @Override
@@ -80,9 +99,9 @@ public class SpinMenu extends FrameLayout {
             TextView tvHint;
             for (int i = 0; i < smItemLayoutList.size(); i++) {
                 smItemLayout = smItemLayoutList.get(i);
-                pagerLayout = (FrameLayout) smItemLayout.getChildAt(0);
+                pagerLayout = (FrameLayout) smItemLayout.findViewWithTag(TAG_ITEM_PAGER);
                 if (i == 0) { // 初始菜单的时候，默认显示第一个 Fragment
-                    // 先移除第一个 Fragment 的布局
+                    // 先移除第一个包含 Fragment 的布局
                     smItemLayout.removeView(pagerLayout);
 
                     // 创建一个用来占位的 FrameLayout
@@ -92,17 +111,16 @@ public class SpinMenu extends FrameLayout {
                     // 将占位的 FrameLayout 添加到布局中的第一个位置（第二个位子是 Hint）
                     smItemLayout.addView(holderLayout, 0);
 
-                    // 添加 第一个包含 Fragment 的布局到 SpinMenu 中
+                    // 添加 第一个包含 Fragment 的布局添加到 SpinMenu 中
                     FrameLayout.LayoutParams pagerFrameParams = new FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT);
                     pagerLayout.setLayoutParams(pagerFrameParams);
                     addView(pagerLayout);
                 } else {
                     pagerLayout.setLayoutParams(pagerLinLayParams); // 重新调整大小
-
-                    if (hintStrList != null && !hintStrList.isEmpty() && i < hintStrList.size()) { // 显示标题
-                        tvHint = (TextView) smItemLayout.getChildAt(1);
-                        tvHint.setText(hintStrList.get(i));
-                    }
+                }
+                if (hintStrList != null && !hintStrList.isEmpty() && i < hintStrList.size()) { // 显示标题
+                    tvHint = (TextView) smItemLayout.findViewWithTag(TAG_ITEM_HINT);
+                    tvHint.setText(hintStrList.get(i));
                 }
             }
             init = false;
@@ -113,7 +131,8 @@ public class SpinMenu extends FrameLayout {
         if (pagerAdapter != null) {
             pagerAdapter.startUpdate(spinMenuLayout);
             for (int i = 0; i < adapter.getCount(); i++) {
-                pagerAdapter.destroyItem((ViewGroup) spinMenuLayout.getChildAt(i + 1), i, pagerObjects.get(i));
+                ViewGroup pager = (ViewGroup) spinMenuLayout.getChildAt(i).findViewWithTag(TAG_ITEM_PAGER);
+                pagerAdapter.destroyItem(pager, i, pagerObjects.get(i));
             }
             pagerAdapter.finishUpdate(spinMenuLayout);
         }
@@ -136,12 +155,14 @@ public class SpinMenu extends FrameLayout {
             // 创建 Fragment 容器
             FrameLayout framePager = new FrameLayout(getContext());
             framePager.setId(pagerCount + i + 1);
+            framePager.setTag(TAG_ITEM_PAGER);
             framePager.setLayoutParams(pagerLinLayParams);
             Object object = pagerAdapter.instantiateItem(framePager, i);
 
             // 创建菜单标题 TextView
             TextView tvHint = new TextView(getContext());
             tvHint.setId(pagerCount * 2 + i + 1);
+            tvHint.setTag(TAG_ITEM_HINT);
             tvHint.setLayoutParams(hintLinLayParams);
 
             smItemLayout.addView(framePager);
@@ -154,11 +175,22 @@ public class SpinMenu extends FrameLayout {
         pagerAdapter.finishUpdate(spinMenuLayout);
     }
 
+    public void openMenu() {
+        if (!isOpen) {
+            spinMenuAnimator.openMenuAnimator();
+            isOpen = !isOpen;
+        }
+    }
+
     public void setMenuItemScaleValue(float scaleValue) {
         scaleRatio = scaleValue;
     }
 
     public void setHintTextList(List<String> hintTextList) {
         hintStrList = hintTextList;
+    }
+
+    public float getScaleRatio() {
+        return scaleRatio;
     }
 }

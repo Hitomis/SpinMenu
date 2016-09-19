@@ -1,11 +1,9 @@
 package com.hitomi.smlibrary;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.Scroller;
 
@@ -24,11 +22,6 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
      */
     private static final int MIN_PER_ANGLE = ANGLE_SPACE;
 
-    /**
-     * 点击与触摸的切换阀值
-     */
-    private int touchSlop = 8;
-
     private float delayAngle, perAngle;
 
     private float radius;
@@ -45,6 +38,8 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
 
     private int minFlingAngle, maxFlingAngle;
 
+    private OnSpinSelectedListener onSpinSelectedListener;
+
     public SpinMenuLayout(Context context) {
         this(context, null);
     }
@@ -55,12 +50,6 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
 
     public SpinMenuLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.DONUT) {
-            ViewConfiguration conf = ViewConfiguration.get(getContext());
-            touchSlop = conf.getScaledTouchSlop();
-        }
-
         scroller = new Scroller(context);
     }
 
@@ -202,5 +191,19 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
             postDelayed(this, 16);
             requestLayout();
         }
+        if (scroller.isFinished()) {
+            int position = Math.abs(scroller.getCurrX() / ANGLE_SPACE);
+            if (onSpinSelectedListener != null) {
+                onSpinSelectedListener.onSpinSelectedListener(position);
+            }
+        }
+    }
+
+    public int getSelectedPosition() {
+        return Math.abs(scroller.getFinalX() / ANGLE_SPACE);
+    }
+
+    public void setOnSpinSelectedListener(OnSpinSelectedListener listener) {
+        onSpinSelectedListener = listener;
     }
 }
