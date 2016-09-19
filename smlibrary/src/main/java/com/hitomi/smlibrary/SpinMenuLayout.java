@@ -44,7 +44,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
 
     private OnSpinSelectedListener onSpinSelectedListener;
 
-    private OnMenuSelectedListener onMenuSelectedListener;
+    private com.hitomi.smlibrary.onMenuSelectedListener onMenuSelectedListener;
 
     public SpinMenuLayout(Context context) {
         this(context, null);
@@ -242,7 +242,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         onSpinSelectedListener = listener;
     }
 
-    public void setOnMenuSelectedListener(OnMenuSelectedListener listener) {
+    public void setOnMenuSelectedListener(com.hitomi.smlibrary.onMenuSelectedListener listener) {
         onMenuSelectedListener = listener;
     }
 }
