@@ -204,8 +204,16 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
 
     @Override
     public void onClick(View view) {
-        if (view instanceof SMItemLayout && onMenuSelectedListener != null)
-        onMenuSelectedListener.onMenuSelectedListener((SMItemLayout) view);
+        int index = indexOfChild(view);
+        int selPos = getSelectedPosition();
+        if (index != selPos) {
+            // 当前点击的是左右两边的一个 Item，则把点击的 Item 滚动到选中[正中间]位置
+            scroller.startScroll(Math.round(delayAngle), 0, (selPos - index) * ANGLE_SPACE, 0, 300);
+            post(this);
+        } else {
+            if (view instanceof SMItemLayout && onMenuSelectedListener != null)
+                onMenuSelectedListener.onMenuSelectedListener((SMItemLayout) view);
+        }
     }
 
     public int getSelectedPosition() {
