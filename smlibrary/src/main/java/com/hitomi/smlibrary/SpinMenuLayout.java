@@ -178,7 +178,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
             if (perAngle < 0)
                 return -ANGLE_SPACE - remainder;
             else
-                return ANGLE_SPACE - remainder;
+                return Math.abs(remainder) - ANGLE_SPACE;
         } else {
             return -remainder;
         }
