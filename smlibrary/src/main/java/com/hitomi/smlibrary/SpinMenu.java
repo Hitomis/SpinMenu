@@ -27,6 +27,8 @@ public class SpinMenu extends FrameLayout {
 
     static final float SCALE_RATIO = .36f;
 
+    static final float TRAN_SKNEW_VALUE = 160;
+
     private SpinMenuLayout spinMenuLayout;
 
     private SpinMenuAnimator spinMenuAnimator;
@@ -50,6 +52,15 @@ public class SpinMenu extends FrameLayout {
         public void onSpinSelectedListener(int position) {
 //            Toast.makeText(getContext(), "" + position, Toast.LENGTH_SHORT).show();
 
+        }
+    };
+
+    private OnMenuSelectedListener onMenuSelectedListener = new OnMenuSelectedListener() {
+        @Override
+        public void onMenuSelectedListener(SMItemLayout smItemLayout) {
+            if (isOpen) {
+                closeMenu(smItemLayout);
+            }
         }
     };
 
@@ -79,6 +90,7 @@ public class SpinMenu extends FrameLayout {
         spinMenuLayout.setId(smLayoutId);
         spinMenuLayout.setLayoutParams(layoutParams);
         spinMenuLayout.setOnSpinSelectedListener(onSpinSelectedListener);
+        spinMenuLayout.setOnMenuSelectedListener(onMenuSelectedListener);
         addView(spinMenuLayout);
 
         spinMenuAnimator = new SpinMenuAnimator(this, spinMenuLayout);
@@ -118,9 +130,18 @@ public class SpinMenu extends FrameLayout {
                 } else {
                     pagerLayout.setLayoutParams(pagerLinLayParams); // 重新调整大小
                 }
-                if (hintStrList != null && !hintStrList.isEmpty() && i < hintStrList.size()) { // 显示标题
+                // 显示标题
+                if (hintStrList != null && !hintStrList.isEmpty() && i < hintStrList.size()) {
                     tvHint = (TextView) smItemLayout.findViewWithTag(TAG_ITEM_HINT);
                     tvHint.setText(hintStrList.get(i));
+                }
+                // 位于菜单中当前显示 Fragment 两边的 SMItemlayout 左右移动 TRAN_SKNEW_VALUE 个距离
+                if (spinMenuLayout.getSelectedPosition() + 1 == i) {
+                    smItemLayout.setTranslationX(TRAN_SKNEW_VALUE);
+                } else if (spinMenuLayout.getSelectedPosition() - 1 == i) {
+                    smItemLayout.setTranslationX(-TRAN_SKNEW_VALUE);
+                } else {
+                    smItemLayout.setTranslationX(0);
                 }
             }
             init = false;
@@ -178,6 +199,13 @@ public class SpinMenu extends FrameLayout {
     public void openMenu() {
         if (!isOpen) {
             spinMenuAnimator.openMenuAnimator();
+            isOpen = !isOpen;
+        }
+    }
+
+    public void closeMenu(SMItemLayout chooseItemLayout) {
+        if (isOpen) {
+            spinMenuAnimator.closeMenuAnimator(chooseItemLayout);
             isOpen = !isOpen;
         }
     }

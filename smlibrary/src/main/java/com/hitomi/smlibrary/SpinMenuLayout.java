@@ -10,7 +10,7 @@ import android.widget.Scroller;
 /**
  * Created by hitomi on 2016/9/13.
  */
-public class SpinMenuLayout extends ViewGroup implements Runnable {
+public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickListener{
 
     /**
      * View 之间间隔的角度
@@ -39,6 +39,8 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
     private int minFlingAngle, maxFlingAngle;
 
     private OnSpinSelectedListener onSpinSelectedListener;
+
+    private OnMenuSelectedListener onMenuSelectedListener;
 
     public SpinMenuLayout(Context context) {
         this(context, null);
@@ -91,6 +93,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
             child.layout(left - childWidth / 2, top - childHeight / 2,
                         left + childWidth / 2, top + childHeight / 2);
 
+            child.setOnClickListener(this);
             child.setRotation(startAngle);
             startAngle += ANGLE_SPACE;
         }
@@ -199,11 +202,21 @@ public class SpinMenuLayout extends ViewGroup implements Runnable {
         }
     }
 
+    @Override
+    public void onClick(View view) {
+        if (view instanceof SMItemLayout && onMenuSelectedListener != null)
+        onMenuSelectedListener.onMenuSelectedListener((SMItemLayout) view);
+    }
+
     public int getSelectedPosition() {
         return Math.abs(scroller.getFinalX() / ANGLE_SPACE);
     }
 
     public void setOnSpinSelectedListener(OnSpinSelectedListener listener) {
         onSpinSelectedListener = listener;
+    }
+
+    public void setOnMenuSelectedListener(OnMenuSelectedListener listener) {
+        onMenuSelectedListener = listener;
     }
 }

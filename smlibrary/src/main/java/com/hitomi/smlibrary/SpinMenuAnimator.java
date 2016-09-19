@@ -32,6 +32,16 @@ public class SpinMenuAnimator {
         final float scaleRatio = spinMenu.getScaleRatio();
         float endTranY = (showingPager.getHeight() * (1.f -  scaleRatio)) * .5f - selectItemLayout.getTop();
 
+        ObjectAnimator leftTranXAnima = null, rightTranXAnima = null;
+        if (spinMenuLayout.getSelectedPosition() - 1 > -1) {
+            ViewGroup leftItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() - 1);
+            leftTranXAnima = ObjectAnimator.ofFloat(leftItemLayout, "translationX", leftItemLayout.getTranslationX(), 0);
+        }
+        if (spinMenuLayout.getSelectedPosition() + 1 < spinMenuLayout.getChildCount()) {
+            ViewGroup rightItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() + 1);
+            rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX", rightItemLayout.getTranslationX(), 0);
+        }
+
         ObjectAnimator scaleXAnima = ObjectAnimator.ofFloat(
                 showingPager, "scaleX", showingPager.getScaleX(), scaleRatio);
         ObjectAnimator scaleYAnima = ObjectAnimator.ofFloat(
@@ -43,7 +53,13 @@ public class SpinMenuAnimator {
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.setDuration(300);
         animatorSet.setInterpolator(interpolator);
-        animatorSet.play(scaleXAnima).with(scaleYAnima).with(tranYAnima);
+        AnimatorSet.Builder animaBuilder = animatorSet.play(scaleXAnima).with(scaleYAnima).with(tranYAnima);
+        if (leftTranXAnima != null) {
+            animaBuilder.with(leftTranXAnima);
+        }
+        if (rightTranXAnima != null) {
+            animaBuilder.with(rightTranXAnima);
+        }
         animatorSet.start();
 
         animatorSet.addListener(new AnimatorListenerAdapter() {
@@ -68,5 +84,9 @@ public class SpinMenuAnimator {
                 showingPager.setScaleY(1.f);
             }
         });
+    }
+
+    public void closeMenuAnimator(SMItemLayout chooseItemLayout) {
+
     }
 }
