@@ -1,6 +1,7 @@
 package com.hitomi.smlibrary;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.IdRes;
 import android.support.v4.view.PagerAdapter;
 import android.util.AttributeSet;
@@ -25,8 +26,9 @@ public class SpinMenu extends FrameLayout {
 
     static final String TAG_ITEM_HINT = "tag_item_hint";
 
-    static final float SCALE_RATIO = .36f;
-
+    /**
+     * Item左右移动动画的距离
+     */
     static final float TRAN_SKNEW_VALUE = 160;
 
     private SpinMenuLayout spinMenuLayout;
@@ -39,18 +41,39 @@ public class SpinMenu extends FrameLayout {
 
     private List<SMItemLayout> smItemLayoutList;
 
+    /**
+     * 页面标题字符集合
+     */
     private List<String> hintStrList;
 
+    /**
+     * 页面标题字符尺寸
+     */
+    private float hintTextSize = 14;
+
+    /**
+     * 页面标题字符颜色
+     */
+    private int hintTextColor = Color.parseColor("#666666");
+
+    /**
+     * 空间是否初始化的标记变量
+     */
     private boolean init;
 
+    /**
+     * 菜单是否打开的标记变量
+     */
     private boolean isOpen;
 
-    private float scaleRatio = SCALE_RATIO;
+    /**
+     * 默认打开菜单时页面缩小的比率
+     */
+    private float scaleRatio = .36f;
 
     private OnSpinSelectedListener onSpinSelectedListener = new OnSpinSelectedListener() {
         @Override
         public void onSpinSelectedListener(int position) {
-//            Toast.makeText(getContext(), "" + position, Toast.LENGTH_SHORT).show();
 
         }
     };
@@ -135,6 +158,8 @@ public class SpinMenu extends FrameLayout {
                 if (hintStrList != null && !hintStrList.isEmpty() && i < hintStrList.size()) {
                     tvHint = (TextView) smItemLayout.findViewWithTag(TAG_ITEM_HINT);
                     tvHint.setText(hintStrList.get(i));
+                    tvHint.setTextSize(hintTextSize);
+                    tvHint.setTextColor(hintTextColor);
                 }
                 // 位于菜单中当前显示 Fragment 两边的 SMItemlayout 左右移动 TRAN_SKNEW_VALUE 个距离
                 if (spinMenuLayout.getSelectedPosition() + 1 == i) {
@@ -198,15 +223,17 @@ public class SpinMenu extends FrameLayout {
     }
 
     public void openMenu() {
-//        if (!isOpen) {
+        if (!isOpen) {
             spinMenuAnimator.openMenuAnimator();
+            spinMenuLayout.postEnable(true);
             isOpen = !isOpen;
-//        }
+        }
     }
 
     public void closeMenu(SMItemLayout chooseItemLayout) {
         if (isOpen) {
             spinMenuAnimator.closeMenuAnimator(chooseItemLayout);
+            spinMenuLayout.postEnable(false);
             isOpen = !isOpen;
         }
     }
@@ -215,7 +242,15 @@ public class SpinMenu extends FrameLayout {
         scaleRatio = scaleValue;
     }
 
-    public void setHintTextList(List<String> hintTextList) {
+    public void setHintTextSize(float textSize) {
+        hintTextSize = textSize;
+    }
+
+    public void setHintTextColor(int textColor) {
+        hintTextColor = textColor;
+    }
+
+    public void setHintTextStrList(List<String> hintTextList) {
         hintStrList = hintTextList;
     }
 

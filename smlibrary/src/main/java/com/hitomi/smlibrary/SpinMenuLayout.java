@@ -30,6 +30,12 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
      * 用于自动滚动时速度加快，无其他意义
      */
     private static final float ACCELERATE_ANGLE_RATIO = 1.8f;
+
+    /**
+     * 用于加长半径，无其他意义
+     */
+    private static final float RADIUS_HALF_WIDTH_RATIO = 1.2f;
+
     /**
      * 转动角度超出可转动范围时，转动角度的迟延比率
      */
@@ -74,6 +80,8 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
      * 是否可以循环滚动
      */
     private boolean isCyclic;
+
+    private boolean enable;
 
     private Scroller scroller;
 
@@ -125,7 +133,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         int childWidth, childHeight;
         int centerX = getMeasuredWidth() / 2;
         int centerY = getMeasuredHeight();
-        radius = centerX + getChildAt(0).getMeasuredHeight() / 2;
+        radius = centerX * RADIUS_HALF_WIDTH_RATIO + getChildAt(0).getMeasuredHeight() / 2;
 
         for (int i = 0; i < childCount; i++) {
             child = getChildAt(i);
@@ -151,7 +159,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-
+        if (!enable) return super.dispatchTouchEvent(ev);
         float curX = ev.getX();
         float curY = ev.getY();
 
@@ -286,6 +294,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         }
     }
 
+    /**
+     * 获取当前选中的位置
+     * @return
+     */
     public int getSelectedPosition() {
         return Math.abs(scroller.getFinalX() / ANGLE_SPACE);
     }
@@ -302,6 +314,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         } else {
             return -1;
         }
+    }
+
+    public void postEnable(boolean isEnable) {
+        enable = isEnable;
     }
 
     public void setOnSpinSelectedListener(OnSpinSelectedListener listener) {

@@ -1,5 +1,6 @@
 package com.hitomi.spinmenu;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -50,7 +51,9 @@ public class MainActivity extends AppCompatActivity {
         hintStrList.add("走走看看");
         hintStrList.add("我的信息");
         hintStrList.add("系统设置");
-        spinMenu.setHintTextList(hintStrList);
+        spinMenu.setHintTextStrList(hintStrList);
+        spinMenu.setHintTextColor(Color.parseColor("#FFFFFF"));
+        spinMenu.setHintTextSize(16);
     }
 
     @Override

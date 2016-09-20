@@ -6,4 +6,10 @@
     android:layout_height="match_parent"
     tools:context="com.hitomi.spinmenu.MainActivity">
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#333a4a">
+    </FrameLayout>
+
 </com.hitomi.smlibrary.SpinMenu>
