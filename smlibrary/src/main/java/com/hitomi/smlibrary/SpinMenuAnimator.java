@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 /**
  * Created by hitomi on 2016/9/19.
@@ -31,9 +30,9 @@ public class SpinMenuAnimator {
 
     public void openMenuAnimator() {
         spinMenuLayout.setVisibility(View.VISIBLE);
-        ViewGroup showingViewGroup = (ViewGroup) spinMenu.getChildAt(spinMenu.getChildCount() - 1);
-        final ViewGroup selectItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition());
-        final ViewGroup showingPager = (ViewGroup) showingViewGroup.findViewWithTag(SpinMenu.TAG_ITEM_PAGER);
+        ViewGroup selectItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition());
+        final ViewGroup showingPager = (ViewGroup) spinMenu.getChildAt(spinMenu.getChildCount() - 1);
+        final ViewGroup selectContainer = (ViewGroup) selectItemLayout.findViewWithTag(SpinMenu.TAG_ITEM_CONTAINER);
         final float scaleRatio = spinMenu.getScaleRatio();
         diffTranY = (showingPager.getHeight() * (1.f -  scaleRatio)) * .5f - selectItemLayout.getTop();
 
@@ -75,42 +74,42 @@ public class SpinMenuAnimator {
                 // 从 SpinMenu 中移除 showingPager
                 spinMenu.removeView(showingPager);
 
-                // 从 selectChild 中移除之前用来占位的 FrameLayout
-                selectItemLayout.removeViewAt(0);
+                // 从 selectContainer 中移除之前用来占位的 FrameLayout
+                selectContainer.removeAllViews();
 
-                // 将 showingPager 添加到 selectItemLayout 中
-
-                LinearLayout.LayoutParams pagerParams = new LinearLayout.LayoutParams(
-                        (int) (showingPager.getWidth() * scaleRatio),
-                        (int) (showingPager.getHeight() * scaleRatio)
+                // 将 showingPager 添加到 selectContainer 中
+                FrameLayout.LayoutParams pagerParams = new FrameLayout.LayoutParams(
+                        showingPager.getWidth(),
+                        showingPager.getHeight()
                 );
-                selectItemLayout.addView(showingPager, 0, pagerParams);
+                selectContainer.addView(showingPager, pagerParams);
 
-                showingPager.setTranslationY(0);
-                showingPager.setScaleX(1.f);
-                showingPager.setScaleY(1.f);
+                // 校正 showingPager 在 selectContainer 中的位置
+                float tranX = (showingPager.getWidth() * (1.f -  scaleRatio)) * .5f;
+                float tranY = (showingPager.getHeight() * (1.f -  scaleRatio)) * .5f;
+                showingPager.setTranslationX(-tranX);
+                showingPager.setTranslationY(-tranY);
             }
         });
     }
 
     public void closeMenuAnimator(SMItemLayout chooseItemLayout) {
-         // 从 chooseItemLayout 中移除 包含显示 Fragment 的 FrameLayout
-        FrameLayout pagerLayout = (FrameLayout) chooseItemLayout.findViewWithTag(SpinMenu.TAG_ITEM_PAGER);
-        chooseItemLayout.removeView(pagerLayout);
+         // 从 chooseItemLayout 中移除包含显示 Fragment 的 FrameLayout
+        FrameLayout frameContainer = (FrameLayout) chooseItemLayout.findViewWithTag(SpinMenu.TAG_ITEM_CONTAINER);
+        FrameLayout pagerLayout = (FrameLayout) frameContainer.findViewWithTag(SpinMenu.TAG_ITEM_PAGER);
+        frameContainer.removeView(pagerLayout);
 
         // 创建一个用来占位的 FrameLayout
-        int pagerWidth = (int) (spinMenu.getWidth() * spinMenu.getScaleRatio());
-        int pagerHeight = (int) (spinMenu.getHeight() * spinMenu.getScaleRatio());
-        LinearLayout.LayoutParams pagerLinLayParams = new LinearLayout.LayoutParams(pagerWidth, pagerHeight);
+        FrameLayout.LayoutParams pagerFrameParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
         FrameLayout holderLayout = new FrameLayout(chooseItemLayout.getContext());
-        holderLayout.setLayoutParams(pagerLinLayParams);
+        holderLayout.setLayoutParams(pagerFrameParams);
 
-        // 将占位的 FrameLayout 添加到 chooseItemLayout 布局中的第一个位置（第二个位子是 Hint）
-        chooseItemLayout.addView(holderLayout, 0);
+        // 将占位的 FrameLayout 添加到 chooseItemLayout 布局中的 frameContainer 中
+        frameContainer.addView(holderLayout);
 
         // 添加 pagerLayout 添加到 SpinMenu 中
-        FrameLayout.LayoutParams pagerFrameParams = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         pagerLayout.setLayoutParams(pagerFrameParams);
         spinMenu.addView(pagerLayout);
 

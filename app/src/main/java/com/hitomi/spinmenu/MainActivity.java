@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         hintStrList.add("系统设置");
         spinMenu.setHintTextStrList(hintStrList);
         spinMenu.setHintTextColor(Color.parseColor("#FFFFFF"));
-        spinMenu.setHintTextSize(16);
+        spinMenu.setHintTextSize(18);
     }
 
     @Override

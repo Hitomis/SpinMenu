@@ -133,7 +133,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         int childWidth, childHeight;
         int centerX = getMeasuredWidth() / 2;
         int centerY = getMeasuredHeight();
-        radius = centerX * RADIUS_HALF_WIDTH_RATIO + getChildAt(0).getMeasuredHeight() / 2;
+        radius = centerX * RADIUS_HALF_WIDTH_RATIO + getChildAt(1).getMeasuredHeight() / 2;
 
         for (int i = 0; i < childCount; i++) {
             child = getChildAt(i);
