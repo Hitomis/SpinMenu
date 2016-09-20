@@ -238,6 +238,10 @@ public class SpinMenu extends FrameLayout {
         }
     }
 
+    public boolean isOpen() {
+        return isOpen;
+    }
+
     public void setMenuItemScaleValue(float scaleValue) {
         scaleRatio = scaleValue;
     }

@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
@@ -29,6 +30,7 @@ public class SpinMenuAnimator {
     }
 
     public void openMenuAnimator() {
+        spinMenuLayout.setVisibility(View.VISIBLE);
         ViewGroup showingViewGroup = (ViewGroup) spinMenu.getChildAt(spinMenu.getChildCount() - 1);
         final ViewGroup selectItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition());
         final ViewGroup showingPager = (ViewGroup) showingViewGroup.findViewWithTag(SpinMenu.TAG_ITEM_PAGER);
@@ -153,7 +155,7 @@ public class SpinMenuAnimator {
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-
+                spinMenuLayout.setVisibility(View.GONE);
             }
         });
     }
