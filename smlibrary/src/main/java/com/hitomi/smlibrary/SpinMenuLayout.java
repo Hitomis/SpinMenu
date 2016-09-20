@@ -26,21 +26,56 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
      */
     private static final int MIN_PER_ANGLE = ANGLE_SPACE;
 
+    /**
+     * 用于自动滚动时速度加快，无其他意义
+     */
+    private static final float ACCELERATE_ANGLE_RATIO = 1.8f;
+    /**
+     * 转动角度超出可转动范围时，转动角度的迟延比率
+     */
+    private static final float DELAY_ANGLE_RATIO = 5.6f;
+
+    /**
+     * 点击与拖动的切换阀值
+     */
+    private final int touchSlopAngle = 2;
+
+    /**
+     * 最小和最大惯性滚动角度值 [-(getChildCount() - 1) * ANGLE_SPACE, 0]
+     */
+    private int minFlingAngle, maxFlingAngle;
+
+    /**
+     * delayAngle: 当前转动的总角度值， perAngle：每次转动的角度值
+     */
     private float delayAngle, perAngle;
 
+    /**
+     * 半径：从底边到 Child 高度的中点
+     */
     private float radius;
 
+    /**
+     * 每次手指按下时坐标值
+     */
     private float preX, preY;
 
-    private long preTimes;
-
+    /**
+     * 每次转动的速度
+     */
     private float anglePerSecond;
 
+    /**
+     * 每次手指按下的时间值
+     */
+    private long preTimes;
+
+    /**
+     * 是否可以循环滚动
+     */
     private boolean isCyclic;
 
     private Scroller scroller;
-
-    private int minFlingAngle, maxFlingAngle;
 
     private OnSpinSelectedListener onSpinSelectedListener;
 
@@ -62,6 +97,12 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        // 宽度、高度与父容器一致
+        ViewGroup parent = ((ViewGroup )getParent());
+        int measureWidth = parent.getMeasuredWidth();
+        int measureHeight = parent.getMeasuredHeight();
+        setMeasuredDimension(measureWidth, measureHeight);
 
         if (getChildCount() > 0) {
             // 对子元素进行测量
@@ -130,24 +171,35 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
                 float start = computeAngle(preX, preY);
                 float end = computeAngle(curX, curY);
 
-                if (diffX > 0) {
-                    delayAngle += Math.abs(start - end);
-                    perAngle += Math.abs(start - end);
-                } else {
-                    delayAngle -= Math.abs(end - start);
-                    perAngle -= Math.abs(end - start);
+                if (!isCyclic && (delayAngle < minFlingAngle || delayAngle > maxFlingAngle)) {
+                    // 当前不是循环滚动模式，且转动的角度超出了可转角度的范围
+                    if (diffX > 0) {
+                        delayAngle += Math.abs(start - end) / DELAY_ANGLE_RATIO;
+                        perAngle += Math.abs(start - end) /  DELAY_ANGLE_RATIO;
+                    } else {
+                        delayAngle -= Math.abs(end - start) /  DELAY_ANGLE_RATIO;
+                        perAngle -= Math.abs(end - start) /  DELAY_ANGLE_RATIO;
+                    }
+                } else{
+                    if (diffX > 0) {
+                        delayAngle += Math.abs(start - end);
+                        perAngle += Math.abs(start - end);
+                    } else {
+                        delayAngle -= Math.abs(end - start);
+                        perAngle -= Math.abs(end - start);
+                    }
                 }
-
-                requestLayout();
-
                 preX = curX;
                 preY = curY;
+
+
+                requestLayout();
                 break;
             case MotionEvent.ACTION_UP:
-                anglePerSecond = perAngle * 1000 / (System.currentTimeMillis() - preTimes) * 2;
+                anglePerSecond = perAngle * 1000 / (System.currentTimeMillis() - preTimes);
                 int startAngle = (int) delayAngle;
                 if (Math.abs(anglePerSecond) > MIN_PER_ANGLE && startAngle >= minFlingAngle && startAngle <= maxFlingAngle) {
-                    scroller.fling(startAngle, 0, (int) anglePerSecond, 0, minFlingAngle, maxFlingAngle, 0, 0);
+                    scroller.fling(startAngle, 0, (int) (anglePerSecond * ACCELERATE_ANGLE_RATIO), 0, minFlingAngle, maxFlingAngle, 0, 0);
                     scroller.setFinalX(scroller.getFinalX() + computeDistanceToEndAngle(scroller.getFinalX() % ANGLE_SPACE));
                 } else {
                     scroller.startScroll(startAngle, 0, computeDistanceToEndAngle(startAngle % ANGLE_SPACE), 0, 300);
@@ -167,12 +219,21 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         return super.dispatchTouchEvent(ev);
     }
 
+    /**
+     * 计算最小和最大惯性滚动角度
+     */
     private void computeFlingLimitAngle() {
         // 因为中心点在底边中点（坐标系相反），故这里计算的min和max与实际相反
         minFlingAngle = isCyclic ? Integer.MIN_VALUE : -ANGLE_SPACE * (getChildCount() - 1);
         maxFlingAngle = isCyclic ? Integer.MAX_VALUE : 0;
     }
 
+    /**
+     * 依据当前触摸点坐标计算转动的角度
+     * @param xTouch
+     * @param yTouch
+     * @return
+     */
     private float computeAngle(float xTouch, float yTouch) {
         // 圆心点在底边的中点上，根据圆心点转化为对应坐标x, y
         float x = Math.abs(xTouch - getMeasuredWidth() / 2);
@@ -180,6 +241,11 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         return (float) (Math.asin(y / Math.hypot(x, y)) * 180 / Math.PI);
     }
 
+    /**
+     * 计算自动滚动结束时角度值
+     * @param remainder
+     * @return
+     */
     private int computeDistanceToEndAngle(int remainder) {
         if (Math.abs(remainder) > ANGLE_SPACE / 2) {
             if (perAngle < 0)
@@ -215,7 +281,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
             scroller.startScroll(Math.round(delayAngle), 0, (selPos - index) * ANGLE_SPACE, 0, 300);
             post(this);
         } else {
-            if (view instanceof SMItemLayout && onMenuSelectedListener != null)
+            if (view instanceof SMItemLayout && onMenuSelectedListener != null &&  Math.abs(perAngle) <= touchSlopAngle)
                 onMenuSelectedListener.onMenuSelectedListener((SMItemLayout) view);
         }
     }
