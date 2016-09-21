@@ -44,7 +44,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
     /**
      * 点击与拖动的切换阀值
      */
-    private final int touchSlopAngle = 1;
+    private final int touchSlopAngle = 2;
 
     /**
      * 最小和最大惯性滚动角度值 [-(getChildCount() - 1) * ANGLE_SPACE, 0]
@@ -284,10 +284,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
     private int computeClickToEndAngle(int clickIndex, int currSelPos) {
         int endAngle;
         if (isCyclic) {
-            endAngle = ((currSelPos == 0 ? getMenuItemCount() : currSelPos) - clickIndex) * ANGLE_SPACE;
-        } else {
-            endAngle = (currSelPos - clickIndex) * ANGLE_SPACE;
+            clickIndex = clickIndex == 0 && currSelPos == getMenuItemCount() - 1 ? getMenuItemCount() : clickIndex;
+            currSelPos = currSelPos == 0 && clickIndex != 1 ? getMenuItemCount() : currSelPos;
         }
+        endAngle = (currSelPos - clickIndex) * ANGLE_SPACE;
         return endAngle;
     }
 
@@ -313,6 +313,15 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         if (Math.abs(perAngle) <= touchSlopAngle) {
             if (index != selPos) {
                 // 当前点击的是左右两边的一个 Item，则把点击的 Item 滚动到选中[正中间]位置
+                float offsetAngle = ANGLE_SPACE - Math.abs(delayAngle % ANGLE_SPACE);
+                if (offsetAngle != ANGLE_SPACE) { // 有误差
+                    // 校正因为无意滑动而产生的角度误差
+                    if (delayAngle > 0) {
+                        delayAngle += offsetAngle;
+                    } else {
+                        delayAngle -= offsetAngle;
+                    }
+                }
                 scroller.startScroll(Math.round(delayAngle), 0, computeClickToEndAngle(index, selPos), 0, 300);
                 post(this);
             } else {
