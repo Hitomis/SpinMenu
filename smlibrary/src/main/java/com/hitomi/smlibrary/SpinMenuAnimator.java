@@ -49,9 +49,16 @@ public class SpinMenuAnimator {
         if (spinMenuLayout.getSelectedPosition() - 1 > -1) {
             ViewGroup leftItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() - 1);
             leftTranXAnima = ObjectAnimator.ofFloat(leftItemLayout, "translationX", leftItemLayout.getTranslationX(), 0);
+        } else if (spinMenuLayout.isCyclic() && spinMenuLayout.getSelectedPosition() == 0) {
+            ViewGroup leftItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getMenuItemCount() - 1);
+            leftTranXAnima = ObjectAnimator.ofFloat(leftItemLayout, "translationX", leftItemLayout.getTranslationX(), 0);
         }
+
         if (spinMenuLayout.getSelectedPosition() + 1 < spinMenuLayout.getChildCount()) {
             ViewGroup rightItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() + 1);
+            rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX", rightItemLayout.getTranslationX(), 0);
+        } else if (spinMenuLayout.isCyclic() && spinMenuLayout.getSelectedPosition() + 1 == spinMenuLayout.getMenuItemCount()) {
+            ViewGroup rightItemLayout = (ViewGroup) spinMenuLayout.getChildAt(0);
             rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX", rightItemLayout.getTranslationX(), 0);
         }
 
@@ -144,11 +151,22 @@ public class SpinMenuAnimator {
         ObjectAnimator leftTranXAnima = null, rightTranXAnima = null;
         if (spinMenuLayout.getSelectedPosition() - 1 > -1) {
             ViewGroup leftItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() - 1);
-            leftTranXAnima = ObjectAnimator.ofFloat(leftItemLayout, "translationX", leftItemLayout.getTranslationX(), -SpinMenu.TRAN_SKNEW_VALUE);
+            leftTranXAnima = ObjectAnimator.ofFloat(leftItemLayout, "translationX",
+                    leftItemLayout.getTranslationX(), -SpinMenu.TRAN_SKNEW_VALUE);
+        } else if (spinMenuLayout.isCyclic() && spinMenuLayout.getSelectedPosition() == 0) {
+            ViewGroup leftItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getMenuItemCount() - 1);
+            leftTranXAnima = ObjectAnimator.ofFloat(leftItemLayout, "translationX",
+                    leftItemLayout.getTranslationX(), -SpinMenu.TRAN_SKNEW_VALUE);
         }
+
         if (spinMenuLayout.getSelectedPosition() + 1 < spinMenuLayout.getChildCount()) {
             ViewGroup rightItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() + 1);
-            rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX", rightItemLayout.getTranslationX(), SpinMenu.TRAN_SKNEW_VALUE);
+            rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX",
+                    rightItemLayout.getTranslationX(), SpinMenu.TRAN_SKNEW_VALUE);
+        } else if (spinMenuLayout.isCyclic() && spinMenuLayout.getSelectedPosition() + 1 == spinMenuLayout.getMenuItemCount()) {
+            ViewGroup rightItemLayout = (ViewGroup) spinMenuLayout.getChildAt(0);
+            rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX",
+                    rightItemLayout.getTranslationX(), SpinMenu.TRAN_SKNEW_VALUE);
         }
 
         ObjectAnimator scaleXAnima =  ObjectAnimator.ofFloat(pagerLayout, "scaleX", pagerLayout.getScaleX(), 1.f);

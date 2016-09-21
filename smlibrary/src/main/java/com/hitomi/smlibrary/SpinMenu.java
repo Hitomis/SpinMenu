@@ -235,10 +235,15 @@ public class SpinMenu extends FrameLayout {
                     tvHint.setTextSize(hintTextSize);
                     tvHint.setTextColor(hintTextColor);
                 }
+
                 // 位于菜单中当前显示 Fragment 两边的 SMItemlayout 左右移动 TRAN_SKNEW_VALUE 个距离
-                if (spinMenuLayout.getSelectedPosition() + 1 == i) {
+                if (spinMenuLayout.getSelectedPosition() + 1 == i
+                        || (spinMenuLayout.isCyclic()
+                            && spinMenuLayout.getMenuItemCount() - i == spinMenuLayout.getSelectedPosition() + 1)) { // 右侧 ItemMenu
                     smItemLayout.setTranslationX(TRAN_SKNEW_VALUE);
-                } else if (spinMenuLayout.getSelectedPosition() - 1 == i) {
+                } else if (spinMenuLayout.getSelectedPosition() - 1 == i
+                        || (spinMenuLayout.isCyclic()
+                            && spinMenuLayout.getMenuItemCount() - i == 1)) { // 左侧 ItemMenu
                     smItemLayout.setTranslationX(-TRAN_SKNEW_VALUE);
                 } else {
                     smItemLayout.setTranslationX(0);

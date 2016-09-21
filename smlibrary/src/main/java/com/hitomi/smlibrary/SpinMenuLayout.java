@@ -44,7 +44,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
     /**
      * 点击与拖动的切换阀值
      */
-    private final int touchSlopAngle = 2;
+    private final int touchSlopAngle = 1;
 
     /**
      * 最小和最大惯性滚动角度值 [-(getChildCount() - 1) * ANGLE_SPACE, 0]
@@ -81,6 +81,9 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
      */
     private boolean isCyclic;
 
+    /**
+     * 是否启动转动选择菜单
+     */
     private boolean enable;
 
     private Scroller scroller;
@@ -199,8 +202,6 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
                 }
                 preX = curX;
                 preY = curY;
-
-
                 requestLayout();
                 break;
             case MotionEvent.ACTION_UP:
@@ -255,14 +256,39 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
      * @return
      */
     private int computeDistanceToEndAngle(int remainder) {
-        if (Math.abs(remainder) > ANGLE_SPACE / 2) {
-            if (perAngle < 0)
-                return -ANGLE_SPACE - remainder;
-            else
-                return Math.abs(remainder) - ANGLE_SPACE;
+        int endAngle;
+        if (remainder > 0) {
+            if (Math.abs(remainder) > ANGLE_SPACE / 2) {
+                if (perAngle < 0) { // 顺时针
+                    endAngle = ANGLE_SPACE - remainder;
+                } else { // 逆时针
+                    endAngle = ANGLE_SPACE - Math.abs(remainder);
+                }
+            } else {
+                endAngle = -remainder;
+            }
         } else {
-            return -remainder;
+            if (Math.abs(remainder) > ANGLE_SPACE / 2) {
+                if (perAngle < 0) {
+                    endAngle = -ANGLE_SPACE - remainder;
+                } else {
+                    endAngle = Math.abs(remainder) - ANGLE_SPACE;
+                }
+            } else {
+                endAngle = -remainder;
+            }
         }
+        return endAngle;
+    }
+
+    private int computeClickToEndAngle(int clickIndex, int currSelPos) {
+        int endAngle;
+        if (isCyclic) {
+            endAngle = ((currSelPos == 0 ? getMenuItemCount() : currSelPos) - clickIndex) * ANGLE_SPACE;
+        } else {
+            endAngle = (currSelPos - clickIndex) * ANGLE_SPACE;
+        }
+        return endAngle;
     }
 
     @Override
@@ -284,18 +310,19 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
     public void onClick(View view) {
         int index = indexOfChild(view);
         int selPos = getSelectedPosition();
-        if (index != selPos) {
-            // 当前点击的是左右两边的一个 Item，则把点击的 Item 滚动到选中[正中间]位置
-            scroller.startScroll(Math.round(delayAngle), 0, (selPos - index) * ANGLE_SPACE, 0, 300);
-            post(this);
-        } else {
-            if (view instanceof SMItemLayout
-                    && onMenuSelectedListener != null
-                    && Math.abs(perAngle) <= touchSlopAngle
-                    && enable) {
-                onMenuSelectedListener.onMenuSelected((SMItemLayout) view);
-            }
+        if (Math.abs(perAngle) <= touchSlopAngle) {
+            if (index != selPos) {
+                // 当前点击的是左右两边的一个 Item，则把点击的 Item 滚动到选中[正中间]位置
+                scroller.startScroll(Math.round(delayAngle), 0, computeClickToEndAngle(index, selPos), 0, 300);
+                post(this);
+            } else {
+                if (view instanceof SMItemLayout
+                        && onMenuSelectedListener != null
+                        && enable) {
+                    onMenuSelectedListener.onMenuSelected((SMItemLayout) view);
+                }
 
+            }
         }
     }
 
@@ -304,7 +331,11 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
      * @return
      */
     public int getSelectedPosition() {
-        return Math.abs(scroller.getFinalX() / ANGLE_SPACE);
+        if (scroller.getFinalX() > 0) {
+            return (360 - scroller.getFinalX()) / ANGLE_SPACE;
+        } else {
+            return (Math.abs(scroller.getFinalX())) / ANGLE_SPACE;
+        }
     }
 
     /**
@@ -319,6 +350,14 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         } else {
             return -1;
         }
+    }
+
+    public int getMenuItemCount() {
+        return getChildCount();
+    }
+
+    public boolean isCyclic() {
+        return isCyclic;
     }
 
     public void postEnable(boolean isEnable) {

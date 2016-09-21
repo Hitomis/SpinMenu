@@ -28,8 +28,10 @@ public class MainActivity extends AppCompatActivity {
         hintStrList.add("热门信息");
         hintStrList.add("实时新闻");
         hintStrList.add("我的论坛");
-        hintStrList.add("走走看看");
         hintStrList.add("我的信息");
+        hintStrList.add("走走看看");
+        hintStrList.add("阅读空间");
+        hintStrList.add("听听唱唱");
         hintStrList.add("系统设置");
 
         spinMenu.setHintTextStrList(hintStrList);
@@ -47,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
         fragmentList.add(Fragment4.newInstance());
         fragmentList.add(Fragment5.newInstance());
         fragmentList.add(Fragment6.newInstance());
+        fragmentList.add(Fragment7.newInstance());
+        fragmentList.add(Fragment8.newInstance());
         FragmentPagerAdapter fragmentPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
