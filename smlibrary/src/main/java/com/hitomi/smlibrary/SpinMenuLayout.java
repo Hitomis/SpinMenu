@@ -129,7 +129,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         isCyclic = getChildCount() == 360 / MIN_PER_ANGLE;
         computeFlingLimitAngle();
 
-        delayAngle %= 360;
+        delayAngle %= 360.f;
         float startAngle = delayAngle;
 
         View child;
@@ -313,16 +313,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         if (Math.abs(perAngle) <= touchSlopAngle) {
             if (index != selPos) {
                 // 当前点击的是左右两边的一个 Item，则把点击的 Item 滚动到选中[正中间]位置
-                float offsetAngle = ANGLE_SPACE - Math.abs(delayAngle % ANGLE_SPACE);
-                if (offsetAngle != ANGLE_SPACE) { // 有误差
-                    // 校正因为无意滑动而产生的角度误差
-                    if (delayAngle > 0) {
-                        delayAngle += offsetAngle;
-                    } else {
-                        delayAngle -= offsetAngle;
-                    }
-                }
-                scroller.startScroll(Math.round(delayAngle), 0, computeClickToEndAngle(index, selPos), 0, 300);
+                scroller.startScroll(-getSelectedPosition() * ANGLE_SPACE, 0, computeClickToEndAngle(index, selPos), 0, 300);
                 post(this);
             } else {
                 if (view instanceof SMItemLayout
