@@ -2,11 +2,16 @@ package com.hitomi.smlibrary;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.annotation.IdRes;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.PagerAdapter;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -35,6 +40,14 @@ public class SpinMenu extends FrameLayout {
 
     static final String TAG_ITEM_HINT = "tag_item_hint";
 
+    static final int MENU_STATE_CLOSE = -2;
+
+    static final int MENU_STATE_CLOSED = -1;
+
+    static final int MENU_STATE_OPEN = 1;
+
+    static final int MENU_STATE_OPENED = 2;
+
     /**
      * 左右菜单 Item 移动动画的距离
      */
@@ -61,6 +74,16 @@ public class SpinMenu extends FrameLayout {
     private PagerAdapter pagerAdapter;
 
     /**
+     * 手势识别器
+     */
+    private GestureDetectorCompat menuDetector;
+
+    /**
+     * 菜单状态改变监听器
+     */
+    private OnSpinMenuStateChangeListener onSpinMenuStateChangeListener;
+
+    /**
      * 缓存 Fragment 的集合，供 {@link #pagerAdapter} 回收使用
      */
     private List pagerObjects;
@@ -81,24 +104,34 @@ public class SpinMenu extends FrameLayout {
     private float hintTextSize = 14;
 
     /**
+     * 默认打开菜单时页面缩小的比率
+     */
+    private float scaleRatio = .36f;
+
+    /**
      * 页面标题字符颜色
      */
     private int hintTextColor = Color.parseColor("#666666");
 
     /**
-     * 空间是否初始化的标记变量
+     * 控件是否初始化的标记变量
      */
-    private boolean init;
+    private boolean init = true;
 
     /**
-     * 菜单是否打开的标记变量
+     * 是否启用手势识别
      */
-    private boolean isOpen;
+    private boolean enableGesture;
 
     /**
-     * 默认打开菜单时页面缩小的比率
+     * 当前菜单状态，默认为已关闭
      */
-    private float scaleRatio = .36f;
+    private int menuState = MENU_STATE_CLOSED;
+
+    /**
+     * 滑动与触摸之间的阀值
+     */
+    private int touchSlop = 8;
 
     private OnSpinSelectedListener onSpinSelectedListener = new OnSpinSelectedListener() {
         @Override
@@ -110,9 +143,18 @@ public class SpinMenu extends FrameLayout {
     private OnMenuSelectedListener onMenuSelectedListener = new OnMenuSelectedListener() {
         @Override
         public void onMenuSelected(SMItemLayout smItemLayout) {
-            if (isOpen) {
-                closeMenu(smItemLayout);
+            closeMenu(smItemLayout);
+        }
+    };
+
+    private GestureDetector.SimpleOnGestureListener menuGestureListener = new GestureDetector.SimpleOnGestureListener() {
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            if (Math.abs(distanceX) < touchSlop && distanceY < -touchSlop * 3) {
+                openMenu();
             }
+            return true;
         }
     };
 
@@ -127,10 +169,14 @@ public class SpinMenu extends FrameLayout {
     public SpinMenu(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        init = true;
-        isOpen = false;
         pagerObjects = new ArrayList();
         smItemLayoutList = new ArrayList<>();
+        menuDetector = new GestureDetectorCompat(context, menuGestureListener);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.DONUT) {
+            ViewConfiguration conf = ViewConfiguration.get(getContext());
+            touchSlop = conf.getScaledTouchSlop();
+        }
     }
 
     @Override
@@ -145,8 +191,6 @@ public class SpinMenu extends FrameLayout {
         spinMenuLayout.setOnSpinSelectedListener(onSpinSelectedListener);
         spinMenuLayout.setOnMenuSelectedListener(onMenuSelectedListener);
         addView(spinMenuLayout);
-
-        spinMenuAnimator = new SpinMenuAnimator(this, spinMenuLayout);
     }
 
     @Override
@@ -200,7 +244,24 @@ public class SpinMenu extends FrameLayout {
                     smItemLayout.setTranslationX(0);
                 }
             }
+            spinMenuAnimator = new SpinMenuAnimator(this, spinMenuLayout, onSpinMenuStateChangeListener);
             init = false;
+        }
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (enableGesture) menuDetector.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (enableGesture) {
+            menuDetector.onTouchEvent(event);
+            return true;
+        } else {
+            return super.onTouchEvent(event);
         }
     }
 
@@ -265,23 +326,29 @@ public class SpinMenu extends FrameLayout {
     }
 
     public void openMenu() {
-        if (!isOpen) {
+        if (menuState == MENU_STATE_CLOSED) {
+            log("open");
             spinMenuAnimator.openMenuAnimator();
-            spinMenuLayout.postEnable(true);
-            isOpen = !isOpen;
         }
     }
 
     public void closeMenu(SMItemLayout chooseItemLayout) {
-        if (isOpen) {
+        if (menuState == MENU_STATE_OPENED) {
+            log("close");
             spinMenuAnimator.closeMenuAnimator(chooseItemLayout);
-            spinMenuLayout.postEnable(false);
-            isOpen = !isOpen;
         }
     }
 
-    public boolean isOpen() {
-        return isOpen;
+    public int getMenuState() {
+        return menuState;
+    }
+
+    public void updateMenuState(int state) {
+        menuState = state;
+    }
+
+    public void setEnableGesture(boolean enable) {
+        enableGesture = enable;
     }
 
     public void setMenuItemScaleValue(float scaleValue) {
@@ -298,6 +365,10 @@ public class SpinMenu extends FrameLayout {
 
     public void setHintTextStrList(List<String> hintTextList) {
         hintStrList = hintTextList;
+    }
+
+    public void setOnSpinMenuStateChangeListener(OnSpinMenuStateChangeListener listener) {
+        onSpinMenuStateChangeListener = listener;
     }
 
     public float getScaleRatio() {
