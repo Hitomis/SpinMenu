@@ -8,9 +8,9 @@ import android.view.ViewGroup;
 import android.widget.Scroller;
 
 /**
- * Created by hitomi on 2016/9/13.<br/>
+ * Created by hitomi on 2016/9/13. <br/>
  *
- * github : https://github.com/Hitomis<br/>
+ * github : https://github.com/Hitomis <br/>
  *
  * email : 196425254@qq.com
  */
@@ -267,16 +267,16 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
 
     @Override
     public void run() {
+        if (scroller.isFinished()) {
+            int position = Math.abs(scroller.getCurrX() / ANGLE_SPACE);
+            if (onSpinSelectedListener != null) {
+                onSpinSelectedListener.onSpinSelected(position);
+            }
+        }
         if (scroller.computeScrollOffset()) {
             delayAngle = scroller.getCurrX();
             postDelayed(this, 16);
             requestLayout();
-        }
-        if (scroller.isFinished()) {
-            int position = Math.abs(scroller.getCurrX() / ANGLE_SPACE);
-            if (onSpinSelectedListener != null) {
-                onSpinSelectedListener.onSpinSelectedListener(position);
-            }
         }
     }
 
@@ -290,7 +290,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
             post(this);
         } else {
             if (view instanceof SMItemLayout && onMenuSelectedListener != null &&  Math.abs(perAngle) <= touchSlopAngle)
-                onMenuSelectedListener.onMenuSelectedListener((SMItemLayout) view);
+                onMenuSelectedListener.onMenuSelected((SMItemLayout) view);
         }
     }
 

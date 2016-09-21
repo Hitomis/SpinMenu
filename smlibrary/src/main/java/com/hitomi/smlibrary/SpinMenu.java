@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.support.annotation.IdRes;
 import android.support.v4.view.PagerAdapter;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -18,9 +19,15 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 /**
- * Created by hitomi on 2016/9/18.
+ * Created by hitomi on 2016/9/18. <br/>
+ *
+ * github : https://github.com/Hitomis <br/>
+ *
+ * email : 196425254@qq.com
  */
 public class SpinMenu extends FrameLayout {
+
+    static final String TAG = "SpinMenu";
 
     static final String TAG_ITEM_CONTAINER = "tag_item_container";
 
@@ -29,20 +36,38 @@ public class SpinMenu extends FrameLayout {
     static final String TAG_ITEM_HINT = "tag_item_hint";
 
     /**
-     * Item左右移动动画的距离
+     * 左右菜单 Item 移动动画的距离
      */
     static final float TRAN_SKNEW_VALUE = 160;
 
+    /**
+     * Hint 相对 页面的上外边距
+     */
     static final int HINT_TOP_MARGIN = 15;
 
+    /**
+     * 可旋转、转动布局
+     */
     private SpinMenuLayout spinMenuLayout;
 
+    /**
+     * 菜单打开关闭动画帮助类
+     */
     private SpinMenuAnimator spinMenuAnimator;
 
+    /**
+     * 页面适配器
+     */
     private PagerAdapter pagerAdapter;
 
+    /**
+     * 缓存 Fragment 的集合，供 {@link #pagerAdapter} 回收使用
+     */
     private List pagerObjects;
 
+    /**
+     * 菜单项集合
+     */
     private List<SMItemLayout> smItemLayoutList;
 
     /**
@@ -77,14 +102,14 @@ public class SpinMenu extends FrameLayout {
 
     private OnSpinSelectedListener onSpinSelectedListener = new OnSpinSelectedListener() {
         @Override
-        public void onSpinSelectedListener(int position) {
-
+        public void onSpinSelected(int position) {
+            log("SpinMenu position:" + position);
         }
     };
 
     private OnMenuSelectedListener onMenuSelectedListener = new OnMenuSelectedListener() {
         @Override
-        public void onMenuSelectedListener(SMItemLayout smItemLayout) {
+        public void onMenuSelected(SMItemLayout smItemLayout) {
             if (isOpen) {
                 closeMenu(smItemLayout);
             }
@@ -177,6 +202,10 @@ public class SpinMenu extends FrameLayout {
             }
             init = false;
         }
+    }
+
+    private void log(String log) {
+        Log.d(TAG, log);
     }
 
     public void setFragmentAdapter(PagerAdapter adapter) {

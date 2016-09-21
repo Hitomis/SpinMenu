@@ -11,7 +11,11 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 
 /**
- * Created by hitomi on 2016/9/19.
+ * Created by hitomi on 2016/9/19. <br/>
+ *
+ * github : https://github.com/Hitomis <br/>
+ *
+ * email : 196425254@qq.com
  */
 public class SpinMenuAnimator {
 
