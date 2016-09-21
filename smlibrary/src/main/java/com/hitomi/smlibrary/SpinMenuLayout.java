@@ -289,8 +289,13 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
             scroller.startScroll(Math.round(delayAngle), 0, (selPos - index) * ANGLE_SPACE, 0, 300);
             post(this);
         } else {
-            if (view instanceof SMItemLayout && onMenuSelectedListener != null &&  Math.abs(perAngle) <= touchSlopAngle)
+            if (view instanceof SMItemLayout
+                    && onMenuSelectedListener != null
+                    && Math.abs(perAngle) <= touchSlopAngle
+                    && enable) {
                 onMenuSelectedListener.onMenuSelected((SMItemLayout) view);
+            }
+
         }
     }
 

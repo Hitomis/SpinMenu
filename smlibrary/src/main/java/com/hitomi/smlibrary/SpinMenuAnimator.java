@@ -25,15 +25,20 @@ public class SpinMenuAnimator {
 
     private SpinMenu spinMenu;
 
+    private OnSpinMenuStateChangeListener onSpinMenuStateChangeListener;
+
     private float diffTranY;
 
-    public SpinMenuAnimator(SpinMenu spinMenu, SpinMenuLayout spinMenuLayout) {
+    public SpinMenuAnimator(SpinMenu spinMenu, SpinMenuLayout spinMenuLayout, OnSpinMenuStateChangeListener listener) {
         this.spinMenu = spinMenu;
         this.spinMenuLayout = spinMenuLayout;
+        this.onSpinMenuStateChangeListener = listener;
     }
 
     public void openMenuAnimator() {
+        spinMenu.updateMenuState(SpinMenu.MENU_STATE_OPEN);
         spinMenuLayout.setVisibility(View.VISIBLE);
+
         ViewGroup selectItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition());
         final ViewGroup showingPager = (ViewGroup) spinMenu.getChildAt(spinMenu.getChildCount() - 1);
         final ViewGroup selectContainer = (ViewGroup) selectItemLayout.findViewWithTag(SpinMenu.TAG_ITEM_CONTAINER);
@@ -93,11 +98,21 @@ public class SpinMenuAnimator {
                 float tranY = (showingPager.getHeight() * (1.f -  scaleRatio)) * .5f;
                 showingPager.setTranslationX(-tranX);
                 showingPager.setTranslationY(-tranY);
+
+                if (onSpinMenuStateChangeListener != null) {
+                    onSpinMenuStateChangeListener.onMenuOpened();
+                }
+
+                spinMenuLayout.postEnable(true);
+                spinMenu.updateMenuState(SpinMenu.MENU_STATE_OPENED);
             }
         });
     }
 
     public void closeMenuAnimator(SMItemLayout chooseItemLayout) {
+        spinMenu.updateMenuState(SpinMenu.MENU_STATE_CLOSE);
+        spinMenuLayout.postEnable(false);
+
          // 从 chooseItemLayout 中移除包含显示 Fragment 的 FrameLayout
         FrameLayout frameContainer = (FrameLayout) chooseItemLayout.findViewWithTag(SpinMenu.TAG_ITEM_CONTAINER);
         FrameLayout pagerLayout = (FrameLayout) frameContainer.findViewWithTag(SpinMenu.TAG_ITEM_PAGER);
@@ -158,7 +173,12 @@ public class SpinMenuAnimator {
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
+                if (onSpinMenuStateChangeListener != null) {
+                    onSpinMenuStateChangeListener.onMenuClosed();
+                }
+
                 spinMenuLayout.setVisibility(View.GONE);
+                spinMenu.updateMenuState(SpinMenu.MENU_STATE_CLOSED);
             }
         });
     }
