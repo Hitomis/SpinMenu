@@ -259,9 +259,9 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         int endAngle;
         if (remainder > 0) {
             if (Math.abs(remainder) > ANGLE_SPACE / 2) {
-                if (perAngle < 0) { // 顺时针
+                if (perAngle < 0) { // 逆时针
                     endAngle = ANGLE_SPACE - remainder;
-                } else { // 逆时针
+                } else { // 顺时针
                     endAngle = ANGLE_SPACE - Math.abs(remainder);
                 }
             } else {
