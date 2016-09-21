@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
 
+import com.hitomi.smlibrary.OnSpinMenuStateChangeListener;
 import com.hitomi.smlibrary.SpinMenu;
 
 import java.util.ArrayList;
@@ -36,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
         spinMenu.setHintTextColor(Color.parseColor("#FFFFFF"));
         spinMenu.setHintTextSize(14);
 
+        // 设置启动手势开启菜单
+        spinMenu.setEnableGesture(true);
+
         // 设置页面适配器
         final List<Fragment> fragmentList = new ArrayList<>();
         fragmentList.add(Fragment1.newInstance());
@@ -56,11 +59,15 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         spinMenu.setFragmentAdapter(fragmentPagerAdapter);
-    }
 
-    @Override
-    public boolean onMenuOpened(int featureId, Menu menu) {
-        spinMenu.openMenu();
-        return super.onMenuOpened(featureId, menu);
+        // 设置菜单状态改变时的监听器
+        spinMenu.setOnSpinMenuStateChangeListener(new OnSpinMenuStateChangeListener() {
+            @Override
+            public void onMenuOpened() {}
+
+            @Override
+            public void onMenuClosed() {}
+        });
+
     }
 }
