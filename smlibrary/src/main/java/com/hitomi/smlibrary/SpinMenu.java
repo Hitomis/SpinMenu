@@ -353,14 +353,12 @@ public class SpinMenu extends FrameLayout {
 
     public void openMenu() {
         if (menuState == MENU_STATE_CLOSED) {
-            log("open");
             spinMenuAnimator.openMenuAnimator();
         }
     }
 
     public void closeMenu(SMItemLayout chooseItemLayout) {
         if (menuState == MENU_STATE_OPENED) {
-            log("close");
             spinMenuAnimator.closeMenuAnimator(chooseItemLayout);
         }
     }
