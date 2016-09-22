@@ -1,6 +1,7 @@
 package com.hitomi.smlibrary;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.IdRes;
@@ -101,17 +102,17 @@ public class SpinMenu extends FrameLayout {
     /**
      * 页面标题字符尺寸
      */
-    private float hintTextSize = 14;
-
-    /**
-     * 默认打开菜单时页面缩小的比率
-     */
-    private float scaleRatio = .36f;
+    private int hintTextSize = 14;
 
     /**
      * 页面标题字符颜色
      */
     private int hintTextColor = Color.parseColor("#666666");
+
+    /**
+     * 默认打开菜单时页面缩小的比率
+     */
+    private float scaleRatio = .36f;
 
     /**
      * 控件是否初始化的标记变量
@@ -168,6 +169,13 @@ public class SpinMenu extends FrameLayout {
 
     public SpinMenu(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.SpinMenu);
+        scaleRatio = typedArray.getFloat(R.styleable.SpinMenu_scale_ratio, scaleRatio);
+        hintTextSize = typedArray.getDimensionPixelSize(R.styleable.SpinMenu_hint_text_size, hintTextSize);
+        hintTextSize = px2Sp(hintTextColor);
+        hintTextColor = typedArray.getColor(R.styleable.SpinMenu_hint_text_color, hintTextColor);
+        typedArray.recycle();
 
         pagerObjects = new ArrayList();
         smItemLayoutList = new ArrayList<>();
@@ -270,6 +278,16 @@ public class SpinMenu extends FrameLayout {
         }
     }
 
+    /**
+     * 根据手机的分辨率从 px(像素) 的单位转成为 sp
+     * @param pxValue
+     * @return
+     */
+    private int px2Sp(float pxValue) {
+        final float fontScale = getContext().getResources().getDisplayMetrics().scaledDensity;
+        return (int) (pxValue / fontScale + 0.5f);
+    }
+
     private void log(String log) {
         Log.d(TAG, log);
     }
@@ -284,20 +302,23 @@ public class SpinMenu extends FrameLayout {
             pagerAdapter.finishUpdate(spinMenuLayout);
         }
 
-        pagerAdapter = adapter;
-        int pagerCount = pagerAdapter.getCount();
+        int pagerCount = adapter.getCount();
+        if (pagerCount > spinMenuLayout.getMaxMenuItemCount())
+            throw new RuntimeException(String.format("Fragment number can't be more than %d", spinMenuLayout.getMaxMenuItemCount()));
 
-        ViewGroup.LayoutParams itemLinLayParams = new ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
+        pagerAdapter = adapter;
+
+        SMItemLayout.LayoutParams itemLinLayParams = new SMItemLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
         LinearLayout.LayoutParams containerLinlayParams = new LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT);
         FrameLayout.LayoutParams pagerFrameParams = new FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT);
         LinearLayout.LayoutParams hintLinLayParams = new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
         hintLinLayParams.topMargin = HINT_TOP_MARGIN;
-        hintLinLayParams.gravity = Gravity.CENTER;
         pagerAdapter.startUpdate(spinMenuLayout);
         for (int i = 0; i < pagerCount; i++) {
             // 创建菜单父容器布局
             SMItemLayout smItemLayout = new SMItemLayout(getContext());
             smItemLayout.setId(i + 1);
+            smItemLayout.setGravity(Gravity.CENTER);
             smItemLayout.setLayoutParams(itemLinLayParams);
 
             // 创建包裹FrameLayout
@@ -360,7 +381,7 @@ public class SpinMenu extends FrameLayout {
         scaleRatio = scaleValue;
     }
 
-    public void setHintTextSize(float textSize) {
+    public void setHintTextSize(int textSize) {
         hintTextSize = textSize;
     }
 

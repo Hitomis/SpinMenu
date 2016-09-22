@@ -347,6 +347,10 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
         }
     }
 
+    public int getMaxMenuItemCount() {
+        return 360 / ANGLE_SPACE;
+    }
+
     public int getMenuItemCount() {
         return getChildCount();
     }

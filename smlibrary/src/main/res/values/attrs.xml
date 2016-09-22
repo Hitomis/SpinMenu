@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ThumbnailMenu -->
+    <declare-styleable name="SpinMenu">
+        <attr name="scale_ratio" format="float" />
+        <attr name="hint_text_color" format="color"/>
+        <attr name="hint_text_size" format="dimension"/>
+    </declare-styleable>
+
+</resources>

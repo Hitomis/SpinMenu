@@ -50,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
         fragmentList.add(Fragment4.newInstance());
         fragmentList.add(Fragment5.newInstance());
         fragmentList.add(Fragment6.newInstance());
-//        fragmentList.add(Fragment7.newInstance());
-//        fragmentList.add(Fragment8.newInstance());
+        fragmentList.add(Fragment7.newInstance());
+        fragmentList.add(Fragment8.newInstance());
         FragmentPagerAdapter fragmentPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
