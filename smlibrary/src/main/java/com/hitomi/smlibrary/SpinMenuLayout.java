@@ -82,7 +82,7 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
     private boolean isCyclic;
 
     /**
-     * 是否启动转动选择菜单
+     * 是否允许可以转动菜单
      */
     private boolean enable;
 
@@ -182,24 +182,19 @@ public class SpinMenuLayout extends ViewGroup implements Runnable, View.OnClickL
                 float start = computeAngle(preX, preY);
                 float end = computeAngle(curX, curY);
 
+                float perDiffAngle;
+                if (diffX > 0) {
+                    perDiffAngle = Math.abs(start - end);
+                } else {
+                    perDiffAngle = -Math.abs(end - start);
+                }
                 if (!isCyclic && (delayAngle < minFlingAngle || delayAngle > maxFlingAngle)) {
                     // 当前不是循环滚动模式，且转动的角度超出了可转角度的范围
-                    if (diffX > 0) {
-                        delayAngle += Math.abs(start - end) / DELAY_ANGLE_RATIO;
-                        perAngle += Math.abs(start - end) /  DELAY_ANGLE_RATIO;
-                    } else {
-                        delayAngle -= Math.abs(end - start) /  DELAY_ANGLE_RATIO;
-                        perAngle -= Math.abs(end - start) /  DELAY_ANGLE_RATIO;
-                    }
-                } else{
-                    if (diffX > 0) {
-                        delayAngle += Math.abs(start - end);
-                        perAngle += Math.abs(start - end);
-                    } else {
-                        delayAngle -= Math.abs(end - start);
-                        perAngle -= Math.abs(end - start);
-                    }
+                    perDiffAngle /= DELAY_ANGLE_RATIO;
                 }
+                delayAngle += perDiffAngle;
+                perAngle += perDiffAngle;
+
                 preX = curX;
                 preY = curY;
                 requestLayout();

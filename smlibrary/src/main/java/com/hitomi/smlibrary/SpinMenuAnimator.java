@@ -11,6 +11,8 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 
 /**
+ * 菜单打开/关闭动画 <br/>
+ *
  * Created by hitomi on 2016/9/19. <br/>
  *
  * github : https://github.com/Hitomis <br/>
@@ -36,6 +38,7 @@ public class SpinMenuAnimator {
     }
 
     public void openMenuAnimator() {
+        // 打开菜单之前，将菜单状态更新为 MENU_STATE_OPEN 并且显示 SpinMenuLayout
         spinMenu.updateMenuState(SpinMenu.MENU_STATE_OPEN);
         spinMenuLayout.setVisibility(View.VISIBLE);
 
@@ -45,6 +48,7 @@ public class SpinMenuAnimator {
         final float scaleRatio = spinMenu.getScaleRatio();
         diffTranY = (showingPager.getHeight() * (1.f -  scaleRatio)) * .5f - selectItemLayout.getTop();
 
+        // 获取当前菜单中间位置左边的菜单项，并设置右移动画
         ObjectAnimator leftTranXAnima = null, rightTranXAnima = null;
         if (spinMenuLayout.getSelectedPosition() - 1 > -1) {
             ViewGroup leftItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() - 1);
@@ -54,6 +58,7 @@ public class SpinMenuAnimator {
             leftTranXAnima = ObjectAnimator.ofFloat(leftItemLayout, "translationX", leftItemLayout.getTranslationX(), 0);
         }
 
+        // 获取当前菜单中间位置右边的菜单项，并设置左移动画
         if (spinMenuLayout.getSelectedPosition() + 1 < spinMenuLayout.getChildCount()) {
             ViewGroup rightItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() + 1);
             rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX", rightItemLayout.getTranslationX(), 0);
@@ -62,6 +67,7 @@ public class SpinMenuAnimator {
             rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX", rightItemLayout.getTranslationX(), 0);
         }
 
+        // 设置当前页面的缩放和上移动画
         ObjectAnimator scaleXAnima = ObjectAnimator.ofFloat(
                 showingPager, "scaleX", showingPager.getScaleX(), scaleRatio);
         ObjectAnimator scaleYAnima = ObjectAnimator.ofFloat(
@@ -110,6 +116,7 @@ public class SpinMenuAnimator {
                     onSpinMenuStateChangeListener.onMenuOpened();
                 }
 
+                // 菜单打开后，允许滑动控制 spinMenuLayout 转动。且更新菜单状态为 MENU_STATE_OPENED
                 spinMenuLayout.postEnable(true);
                 spinMenu.updateMenuState(SpinMenu.MENU_STATE_OPENED);
             }
@@ -117,6 +124,7 @@ public class SpinMenuAnimator {
     }
 
     public void closeMenuAnimator(SMItemLayout chooseItemLayout) {
+        // 关闭菜单之前更新菜单状态为 MENU_STATE_CLOSE，并且不允许滑动控制 spinMenuLayout 转动
         spinMenu.updateMenuState(SpinMenu.MENU_STATE_CLOSE);
         spinMenuLayout.postEnable(false);
 
@@ -147,7 +155,7 @@ public class SpinMenuAnimator {
         pagerLayout.setScaleX(spinMenu.getScaleRatio());
         pagerLayout.setScaleY(spinMenu.getScaleRatio());
 
-        // 启动动画
+        // 获取当前菜单中间位置左边的菜单项，并设置左移动画
         ObjectAnimator leftTranXAnima = null, rightTranXAnima = null;
         if (spinMenuLayout.getSelectedPosition() - 1 > -1) {
             ViewGroup leftItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() - 1);
@@ -159,6 +167,7 @@ public class SpinMenuAnimator {
                     leftItemLayout.getTranslationX(), -SpinMenu.TRAN_SKNEW_VALUE);
         }
 
+        // 获取当前菜单中间位置右边的菜单项，并设置右移动画
         if (spinMenuLayout.getSelectedPosition() + 1 < spinMenuLayout.getChildCount()) {
             ViewGroup rightItemLayout = (ViewGroup) spinMenuLayout.getChildAt(spinMenuLayout.getSelectedPosition() + 1);
             rightTranXAnima = ObjectAnimator.ofFloat(rightItemLayout, "translationX",
@@ -169,6 +178,7 @@ public class SpinMenuAnimator {
                     rightItemLayout.getTranslationX(), SpinMenu.TRAN_SKNEW_VALUE);
         }
 
+        // 设置当前选中菜单的缩放，左右和下移动画
         ObjectAnimator scaleXAnima =  ObjectAnimator.ofFloat(pagerLayout, "scaleX", pagerLayout.getScaleX(), 1.f);
         ObjectAnimator scaleYAnima =  ObjectAnimator.ofFloat(pagerLayout, "scaleY", pagerLayout.getScaleX(), 1.f);
         ObjectAnimator tranXAnima = ObjectAnimator.ofFloat(pagerLayout, "translationX", 0, 0);
@@ -195,6 +205,7 @@ public class SpinMenuAnimator {
                     onSpinMenuStateChangeListener.onMenuClosed();
                 }
 
+                // 菜单关闭后，设置 spinMenuLayout 隐藏，菜单状态更新为 MENU_STATE_CLOSED
                 spinMenuLayout.setVisibility(View.GONE);
                 spinMenu.updateMenuState(SpinMenu.MENU_STATE_CLOSED);
             }

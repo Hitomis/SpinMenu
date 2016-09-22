@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.hitomi.smlibrary.OnSpinMenuStateChangeListener;
 import com.hitomi.smlibrary.SpinMenu;
@@ -49,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
         fragmentList.add(Fragment4.newInstance());
         fragmentList.add(Fragment5.newInstance());
         fragmentList.add(Fragment6.newInstance());
-        fragmentList.add(Fragment7.newInstance());
-        fragmentList.add(Fragment8.newInstance());
+//        fragmentList.add(Fragment7.newInstance());
+//        fragmentList.add(Fragment8.newInstance());
         FragmentPagerAdapter fragmentPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
@@ -67,10 +68,14 @@ public class MainActivity extends AppCompatActivity {
         // 设置菜单状态改变时的监听器
         spinMenu.setOnSpinMenuStateChangeListener(new OnSpinMenuStateChangeListener() {
             @Override
-            public void onMenuOpened() {}
+            public void onMenuOpened() {
+                Toast.makeText(MainActivity.this, "SpinMenu opened", Toast.LENGTH_SHORT).show();
+            }
 
             @Override
-            public void onMenuClosed() {}
+            public void onMenuClosed() {
+                Toast.makeText(MainActivity.this, "SpinMenu closed", Toast.LENGTH_SHORT).show();
+            }
         });
 
     }
