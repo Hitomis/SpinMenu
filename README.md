@@ -29,7 +29,7 @@
 
         </com.hitomi.smlibrary.SpinMenu>
 
-SpinMenu 中可以嵌套其它布局，来绘制您自己的背景
+如果您觉得背景太空洞，可以在 SpinMenu 中嵌套其它布局，来绘制您自己的背景
 
 Activity 中：
 
@@ -102,7 +102,7 @@ Activity 中：
 
 #Licence
 
-MIT 
+MIT
  
 
 
