@@ -1,4 +1,7 @@
 # SpinMenu
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-SpinMenu-green.svg?style=true)](https://android-arsenal.com/details/1/4396)
+
+
 
 轮盘样式的 Fragment 菜单选择控件。有没有很炫？
 
